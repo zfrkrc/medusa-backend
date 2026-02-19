@@ -12,6 +12,7 @@ services:
       - PORT=7001
       - MEDUSA_HTTP_PORT=7001
       - MEDUSA_ADMIN_ONBOARDING_TYPE=none
+      - MEDUSA_DISABLE_ADMIN=true
     command: medusa start
     ports:
       - "7001:7001"
