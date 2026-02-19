@@ -29,6 +29,7 @@ ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN rm -f .env .env.local .env.development .env.production
 
 # Build the Medusa application
+RUN [ ! -d "node_modules" ] && yarn install || true
 RUN yarn build
 
 # Stage 2: Runner (Nginx)

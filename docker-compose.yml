@@ -18,6 +18,8 @@ services:
     volumes:
       # Local directory mapping
       - ./my-medusa-store:/app/my-medusa-store
+      # Protect node_modules inside the container
+      - /app/my-medusa-store/node_modules
       - ./.env:/app/my-medusa-store/.env:ro
       - hobby_uploads:/app/my-medusa-store/uploads
     restart: always

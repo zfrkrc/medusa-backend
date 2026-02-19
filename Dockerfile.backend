@@ -22,5 +22,5 @@ ENV NODE_ENV=development
 
 EXPOSE 7001
 
-# Default command
-CMD ["medusa", "start"]
+# Default command with self-healing: checks if node_modules or build folder is missing
+CMD ["sh", "-c", "([ ! -d 'node_modules' ] && yarn install || true) && ([ ! -d '.medusa/server' ] && yarn build || true) && npx medusa start"]
