@@ -1,0 +1,102 @@
+# Environment Variables (HASSAS!)
+.env
+.env.local
+.env.store
+.env.production
+.env.development
+.env.*.local
+
+.env
+.env.*
+!.env.example
+
+
+
+
+
+
+
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+*.log
+
+# Database
+*.sql
+*.dump
+postgres_data/
+
+# Uploads (Production'da volume kullan)
+uploads/
+/uploads/*
+*.webp
+*.jpg
+*.png
+*.gif
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+*.code-workspace
+
+# Docker
+*.pid
+*.seed
+*.pid.lock
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Backup
+backups/
+*.backup
+*.bak
+
+# Temporary
+tmp/
+temp/
+.cache/
+
+# Medusa specific
+.medusa/
+my-medusa-store/.medusa/
+my-medusa-storefront/.next/
+
+# Secret files
+*.pem
+*.key
+*.cert
+
+# Package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Monorepo artifacts (not needed for store implementation)
+packages/
+medusa-docker-demo/.env
+
+.env
+.env.*
+!.env.example
+
+# Custom Archive
+_archive/
