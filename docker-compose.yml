@@ -38,7 +38,8 @@ services:
       context: .
       dockerfile: Dockerfile.admin
       args:
-        MEDUSA_BACKEND_URL: ${MEDUSA_BACKEND_URL}
+        # Admin UI tarayıcıda çalışır, bu yüzden dış IP gerekir (Docker ismi OLMAZ)
+        MEDUSA_BACKEND_URL: ${NEXT_PUBLIC_MEDUSA_BACKEND_URL}
     container_name: hobby-admin
     depends_on:
       medusa-backend:
