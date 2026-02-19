@@ -1,65 +1,23 @@
-# Stage 1: Builder
-FROM node:20-alpine AS builder
+# Medusa V2 Development Dockerfile
+FROM node:20-alpine
 
 WORKDIR /app/my-medusa-store
 
-# Install system dependencies for build tools
-RUN apk update && apk upgrade --no-cache && apk add --no-cache python3 make g++ git
+# Install system dependencies
+RUN apk update && apk add --no-cache python3 make g++ git curl postgresql-client
 
-# Copy package management files
-COPY my-medusa-store/package.json my-medusa-store/yarn.lock my-medusa-store/.yarnrc.yml ./
-COPY my-medusa-store/.yarn ./.yarn
+# Copy package files for dependency caching (Path relative to context: c:\Kodlar)
+COPY medusa/my-medusa-store/package.json medusa/my-medusa-store/yarn.lock* medusa/my-medusa-store/.yarnrc.yml* ./
+COPY medusa/my-medusa-store/.yarn ./.yarn/
 
-# Install dependencies
-RUN rm -rf yarn.lock package-lock.json node_modules .next && npm install --legacy-peer-deps
+# Install dependencies inside the image
+RUN npm install --legacy-peer-deps
 
-# Copy source code
-COPY my-medusa-store .
+# PATH setup
+ENV PATH="/app/my-medusa-store/node_modules/.bin:$PATH"
+ENV NODE_ENV=development
 
-# Build args from docker-compose
-ARG MEDUSA_BACKEND_URL
-ENV MEDUSA_BACKEND_URL=${MEDUSA_BACKEND_URL}
-ENV NODE_OPTIONS="--max-old-space-size=8192"
+EXPOSE 7001
 
-# Build the application
-RUN npm run build && \
-    mkdir -p public/admin && \
-    if [ -d ".medusa/server/public/admin" ]; then cp -r .medusa/server/public/admin/* public/admin/; fi && \
-    find public/admin -name index.html
-
-# Stage 2: Runner
-FROM node:20-alpine AS runner
-
-WORKDIR /app/my-medusa-store
-
-# Install runtime dependencies
-RUN apk update && apk upgrade --no-cache && apk add --no-cache curl postgresql-client
-
-# Create a non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 medusa
-
-# Copy built artifacts from builder
-COPY --from=builder --chown=medusa:nodejs /app/my-medusa-store/.medusa ./.medusa
-COPY --from=builder --chown=medusa:nodejs /app/my-medusa-store/node_modules ./node_modules
-COPY --from=builder --chown=medusa:nodejs /app/my-medusa-store/package.json .
-COPY --from=builder --chown=medusa:nodejs /app/my-medusa-store/tsconfig.json .
-COPY --from=builder --chown=medusa:nodejs /app/my-medusa-store/medusa-config.ts .
-COPY --from=builder --chown=medusa:nodejs /app/my-medusa-store/src ./src
-COPY --from=builder --chown=medusa:nodejs /app/my-medusa-store/public ./public
-# Ensure public/admin assets are copied if they exist outside .medusa (just in case)
-# COPY --from=builder --chown=medusa:nodejs /app/my-medusa-store/public ./public 
-
-# Set environment
-ENV NODE_ENV=production
-ENV PATH="./node_modules/.bin:$PATH"
-
-# Switch to non-root user
-USER medusa
-
-
-# Expose ports
-EXPOSE 9000
-
-# Start command (migrations should effectively be run before this or via an init container/script)
+# Default command
 CMD ["medusa", "start"]

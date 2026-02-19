@@ -1,0 +1,59 @@
+services:
+  medusa-backend:
+    build:
+      context: ..
+      dockerfile: medusa-backend/Dockerfile.backend
+    container_name: hobby-backend
+    env_file:
+      - .env
+    environment:
+      - NODE_OPTIONS="--max-old-space-size=6144"
+      - MEDUSA_BACKEND_URL=${MEDUSA_BACKEND_URL}
+      - PORT=7001
+      - MEDUSA_HTTP_PORT=7001
+      - MEDUSA_ADMIN_ONBOARDING_TYPE=none
+    command: medusa start
+    ports:
+      - "7001:7001"
+    volumes:
+      - ../medusa/my-medusa-store:/app/my-medusa-store
+      - /app/my-medusa-store/node_modules
+      - ./.env:/app/my-medusa-store/.env:ro
+      - hobby_uploads:/app/my-medusa-store/uploads
+    restart: always
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:7001/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - hobby-network
+
+  medusa-admin:
+    build:
+      context: ..
+      dockerfile: medusa-backend/Dockerfile.admin
+    container_name: hobby-admin
+    depends_on:
+      medusa-backend:
+        condition: service_healthy
+    ports:
+      - "9000:9000"
+    restart: always
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - hobby-network
+
+volumes:
+  hobby_uploads:
+    driver: local
+
+networks:
+  hobby-network:
+    name: hobby-network
+    driver: bridge
