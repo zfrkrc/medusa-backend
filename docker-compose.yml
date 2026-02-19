@@ -34,12 +34,14 @@ services:
     build:
       context: ..
       dockerfile: medusa-backend/Dockerfile.admin
+      args:
+        MEDUSA_BACKEND_URL: ${MEDUSA_BACKEND_URL}
     container_name: hobby-admin
     depends_on:
       medusa-backend:
         condition: service_healthy
     ports:
-      - "9000:9000"
+      - "9000:80"
     restart: always
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost/health" ]
