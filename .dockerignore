@@ -1,10 +1,25 @@
-**/node_modules
-**/.next
-**/.turbo
-**/dist
-**/build
-.git
-.env
-.env.local
-.env.development
-.env.production
+# Exclusions
+node_modules/
+dist/
+.next/
+.cache/
+.medusa/server/public/admin/node_modules/
+.yarn/cache/
+.yarn/unplugged/
+.git/
+.env*
+
+# Inclusions (Override exclusions)
+!my-medusa-store/package.json
+!my-medusa-store/yarn.lock
+!my-medusa-store/.yarnrc.yml
+!my-medusa-store/.yarn
+!my-medusa-store/src
+!my-medusa-store/public
+!my-medusa-store/tsconfig.json
+!my-medusa-store/medusa-config.ts
+
+# Backend configs
+!Dockerfile.backend
+!Dockerfile.admin
+!nginx.admin.conf

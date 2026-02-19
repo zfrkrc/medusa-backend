@@ -6,12 +6,15 @@ WORKDIR /app/my-medusa-store
 # Install system dependencies
 RUN apk update && apk add --no-cache python3 make g++ git curl postgresql-client
 
-# Copy package files for dependency caching (Path relative to context: c:\Kodlar)
-COPY medusa/my-medusa-store/package.json medusa/my-medusa-store/yarn.lock* medusa/my-medusa-store/.yarnrc.yml* ./
-COPY medusa/my-medusa-store/.yarn ./.yarn/
+# Enable corepack to support Yarn Berry if needed
+RUN corepack enable
 
-# Install dependencies inside the image
-RUN npm install --legacy-peer-deps
+# Copy package management files (Path relative to context: c:\Kodlar\medusa-backend)
+COPY my-medusa-store/package.json my-medusa-store/yarn.lock* my-medusa-store/.yarnrc.yml* ./
+COPY my-medusa-store/.yarn ./.yarn/
+
+# Install dependencies inside the image using yarn
+RUN yarn install
 
 # PATH setup
 ENV PATH="/app/my-medusa-store/node_modules/.bin:$PATH"
