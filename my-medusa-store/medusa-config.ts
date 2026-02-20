@@ -97,6 +97,7 @@ module.exports = defineConfig({
     },
     // Redis Event Bus - session ve event yönetimi için gerekli
     ...(REDIS_URL ? [{
+      key: "event_bus",
       resolve: "@medusajs/event-bus-redis",
       options: {
         redisUrl: REDIS_URL,
@@ -104,6 +105,7 @@ module.exports = defineConfig({
     }] : []),
     // Redis Cache
     ...(REDIS_URL ? [{
+      key: "cache",
       resolve: "@medusajs/cache-redis",
       options: {
         redisUrl: REDIS_URL,
