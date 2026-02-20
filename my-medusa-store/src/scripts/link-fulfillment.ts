@@ -76,6 +76,6 @@ export default async function linkStoreToProfile({ container }: ExecArgs) {
         }
 
     } catch (e) {
-        logger.error(`Error: ${e.message}`)
+        logger.error(`Error: ${(e as Error).message}`)
     }
 }

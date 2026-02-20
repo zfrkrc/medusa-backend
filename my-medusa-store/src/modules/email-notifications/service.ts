@@ -3,6 +3,7 @@ import {
     ProviderSendNotificationDTO,
     ProviderSendNotificationResultsDTO
 } from "@medusajs/framework/types"
+// @ts-ignore - nodemailer has no type declarations
 import nodemailer from "nodemailer"
 
 class SmtpNotificationProviderService extends AbstractNotificationProviderService {

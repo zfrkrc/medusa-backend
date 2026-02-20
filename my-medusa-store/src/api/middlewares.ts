@@ -95,7 +95,7 @@ export default defineMiddlewares({
                             else if ((foundPath as string).endsWith(".webp")) res.set("Content-Type", "image/webp")
 
                             const stream = fs.createReadStream(foundPath)
-                            stream.on("error", (err) => {
+                            stream.on("error", (err: Error) => {
                                 console.error("Stream Error:", err)
                                 res.status(500).send("Stream Error")
                             })

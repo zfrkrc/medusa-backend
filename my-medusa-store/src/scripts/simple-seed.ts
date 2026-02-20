@@ -43,7 +43,7 @@ export default async function seedDemoData({ container }: ExecArgs) {
             logger.info("Created Tax Region for TR")
         }
     } catch (e) {
-        logger.warn("Tax region creation skipped: " + e.message)
+        logger.warn("Tax region creation skipped: " + (e as Error).message)
     }
 
     // 4. Region
