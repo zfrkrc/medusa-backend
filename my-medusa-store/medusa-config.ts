@@ -8,9 +8,9 @@ const REDIS_URL = process.env.REDIS_URL
 
 module.exports = defineConfig({
   admin: {
-    disable: false,
+    disable: process.env.DISABLE_MEDUSA_ADMIN === "true",
     path: "/app",
-    backendUrl: process.env.MEDUSA_BACKEND_URL || "http://localhost:9000",
+    backendUrl: process.env.MEDUSA_BACKEND_URL || "http://localhost:7001",
     ...(process.env.NODE_ENV === 'development' ? {
       vite: (config) => {
         return {
@@ -48,7 +48,8 @@ module.exports = defineConfig({
       jwtSecret: process.env.JWT_SECRET || "supersecret",
       cookieSecret: process.env.COOKIE_SECRET || "supersecret",
     },
-    databaseDriverOptions: { ssl: false, sslmode: "disable", },
+    databaseDriverOptions: { ssl: false, sslmode: "disable" },
+    workerMode: process.env.MEDUSA_WORKER_MODE as "shared" | "worker" | "server" || "shared",
   },
   modules: [
     {

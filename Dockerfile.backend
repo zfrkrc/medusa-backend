@@ -1,26 +1,62 @@
-# Medusa V2 Development Dockerfile
-FROM node:20-alpine
+# ==============================================
+# Medusa V2 Production Dockerfile
+# Resmi dökümantasyona uygun: docs.medusajs.com
+# ==============================================
 
-WORKDIR /app/my-medusa-store
+# Stage 1: Installer - tüm bağımlılıkları kur
+FROM node:20-alpine AS installer
 
-# Install system dependencies
+WORKDIR /app
+
+# Sistem bağımlılıkları
 RUN apk update && apk add --no-cache python3 make g++ git curl postgresql-client
 
-# Enable corepack to support Yarn Berry if needed
-RUN corepack enable
-
-# Copy package management files (Path relative to context: c:\Kodlar\medusa-backend)
+# Package dosyalarını kopyala
 COPY my-medusa-store/package.json my-medusa-store/yarn.lock* my-medusa-store/.yarnrc.yml* ./
 COPY my-medusa-store/.yarn ./.yarn/
 
-# Install dependencies inside the image using yarn
-RUN yarn install
+# Bağımlılıkları kur
+RUN corepack enable && yarn install
 
-# PATH setup
-ENV PATH="/app/my-medusa-store/node_modules/.bin:$PATH"
-ENV NODE_ENV=development
+# Stage 2: Builder - uygulamayı derle
+FROM installer AS builder
+
+WORKDIR /app
+
+# Tüm kaynak kodu kopyala
+COPY my-medusa-store .
+
+# Build argümanları (Admin UI build sırasında baked-in olur)
+ARG MEDUSA_BACKEND_URL
+ENV MEDUSA_BACKEND_URL=${MEDUSA_BACKEND_URL}
+
+# Host .env sızıntılarını temizle
+RUN rm -f .env .env.local .env.development .env.production
+
+# Medusa build - .medusa/server dizinini oluşturur
+RUN yarn build
+
+# .medusa/server içindeki production bağımlılıklarını kur
+WORKDIR /app/.medusa/server
+RUN corepack enable && yarn install --production
+
+# Stage 3: Runner - sadece gerekli dosyalarla çalıştır
+FROM node:20-alpine AS runner
+
+WORKDIR /app/medusa
+
+RUN apk add --no-cache curl postgresql-client
+
+# Builder'dan sadece build çıktısını kopyala
+COPY --from=builder /app/.medusa/server /app/medusa
+
+# Environment
+ENV NODE_ENV=production
+ENV PORT=7001
 
 EXPOSE 7001
 
-# Default command with self-healing: checks if node_modules or build folder is missing
-CMD ["sh", "-c", "([ ! -d 'node_modules' ] && yarn install || true) && ([ ! -d '.medusa/server' ] && yarn build || true) && npx medusa start"]
+# Medusa V2 resmi start komutu:
+# 1. predeploy (db:migrate) çalıştır
+# 2. medusa start ile sunucuyu başlat
+CMD ["sh", "-c", "npx medusa db:migrate && npx medusa start"]
