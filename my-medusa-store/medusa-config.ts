@@ -8,7 +8,7 @@ const REDIS_URL = process.env.REDIS_URL
 
 module.exports = defineConfig({
   admin: {
-    disable: process.env.MEDUSA_DISABLE_ADMIN === 'true',
+    disable: false,
     path: "/app",
     backendUrl: process.env.MEDUSA_BACKEND_URL || "http://localhost:9000",
     ...(process.env.NODE_ENV === 'development' ? {
