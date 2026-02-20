@@ -14,23 +14,9 @@ function getCookieValue(req: any, name: string): string | null {
 
 export default defineMiddlewares({
     routes: [
-        // ===== SESSION COOKIE FIX =====
-        // 1. Admin isteklerinde cookie'den JWT oku → Authorization header'a ekle
-        {
-            matcher: "/admin/*",
-            middlewares: [
-                (req: any, res: any, next: any) => {
-                    if (!req.headers.authorization) {
-                        const token = getCookieValue(req, '_medusa_jwt_')
-                        if (token) {
-                            req.headers.authorization = `Bearer ${token}`
-                        }
-                    }
-                    next()
-                }
-            ]
-        },
-        // 2. /auth/session POST → JWT'yi HTTP-only cookie olarak set et
+        // ===== SESSION COOKIE WRITER =====
+        // /auth/session POST → JWT'yi HTTP-only cookie olarak set et
+        // (Cookie reader artık src/loaders/cookie-auth.ts tarafından framework seviyesinde yapılıyor)
         {
             method: ["POST"],
             matcher: "/auth/session",
@@ -38,7 +24,6 @@ export default defineMiddlewares({
                 (req: any, res: any, next: any) => {
                     const token = req.headers.authorization?.replace('Bearer ', '')
                     if (token) {
-                        // writeHead'i yakala - res.json, res.send, res.end HEPSİ writeHead çağırır
                         const origWriteHead = res.writeHead
                         res.writeHead = function (statusCode: number, ...args: any[]) {
                             if (statusCode >= 200 && statusCode < 300) {
@@ -53,7 +38,7 @@ export default defineMiddlewares({
                 }
             ]
         },
-        // ===== END SESSION COOKIE FIX =====
+        // ===== END SESSION COOKIE =====
         {
             method: ["GET"],
             matcher: "/uploads-debug",
