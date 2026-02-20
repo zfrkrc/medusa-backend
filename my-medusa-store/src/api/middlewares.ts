@@ -15,7 +15,7 @@ function getCookieValue(req: any, name: string): string | null {
 export default defineMiddlewares({
     routes: [
         // ===== SESSION COOKIE FIX =====
-        // 1. Admin & Auth isteklerinde cookie'den JWT oku → Authorization header'a ekle
+        // 1. Admin isteklerinde cookie'den JWT oku → Authorization header'a ekle
         {
             matcher: "/admin/*",
             middlewares: [
@@ -36,16 +36,18 @@ export default defineMiddlewares({
             matcher: "/auth/session",
             middlewares: [
                 (req: any, res: any, next: any) => {
-                    // Response'u yakala ve Set-Cookie ekle
-                    const originalJson = res.json.bind(res)
-                    res.json = function (body: any) {
-                        const token = req.headers.authorization?.replace('Bearer ', '')
-                        if (token) {
-                            res.setHeader('Set-Cookie',
-                                `_medusa_jwt_=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${10 * 60 * 60}`
-                            )
+                    const token = req.headers.authorization?.replace('Bearer ', '')
+                    if (token) {
+                        // writeHead'i yakala - res.json, res.send, res.end HEPSİ writeHead çağırır
+                        const origWriteHead = res.writeHead
+                        res.writeHead = function (statusCode: number, ...args: any[]) {
+                            if (statusCode >= 200 && statusCode < 300) {
+                                res.setHeader('Set-Cookie',
+                                    `_medusa_jwt_=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${10 * 60 * 60}`
+                                )
+                            }
+                            return origWriteHead.call(res, statusCode, ...args)
                         }
-                        return originalJson(body)
                     }
                     next()
                 }
