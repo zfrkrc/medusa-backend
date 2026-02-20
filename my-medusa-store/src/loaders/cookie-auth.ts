@@ -11,10 +11,19 @@
  * 3. Her admin isteğinde: cookie okunur → Bearer token eklenir → orijinal auth çalışır
  */
 
+import path from "path"
+
 export default async function cookieAuthLoader() {
     try {
+        // Node.js exports kısıtlamasını bypass etmek için absolute path kullan
+        // (package subpath "@medusajs/framework/dist/..." exports field tarafından engelleniyor)
+        const authModulePath = path.join(
+            process.cwd(),
+            "node_modules", "@medusajs", "framework",
+            "dist", "http", "middlewares", "authenticate-middleware"
+        )
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const authModule = require("@medusajs/framework/dist/http/middlewares/authenticate-middleware")
+        const authModule = require(authModulePath)
         const originalAuthenticate = authModule.authenticate
 
         authModule.authenticate = function (...args: any[]) {
