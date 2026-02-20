@@ -3,8 +3,55 @@ import express from "express"
 import path from "path"
 import fs from "fs"
 
+// Helper: Cookie'den değer okuma (cookie-parser gerektirmez)
+function getCookieValue(req: any, name: string): string | null {
+    const cookieHeader = req.headers.cookie
+    if (!cookieHeader) return null
+    const match = cookieHeader.split(';').find((c: string) => c.trim().startsWith(name + '='))
+    if (!match) return null
+    return decodeURIComponent(match.split('=').slice(1).join('=').trim())
+}
+
 export default defineMiddlewares({
     routes: [
+        // ===== SESSION COOKIE FIX =====
+        // 1. Admin & Auth isteklerinde cookie'den JWT oku → Authorization header'a ekle
+        {
+            matcher: "/admin/*",
+            middlewares: [
+                (req: any, res: any, next: any) => {
+                    if (!req.headers.authorization) {
+                        const token = getCookieValue(req, '_medusa_jwt_')
+                        if (token) {
+                            req.headers.authorization = `Bearer ${token}`
+                        }
+                    }
+                    next()
+                }
+            ]
+        },
+        // 2. /auth/session POST → JWT'yi HTTP-only cookie olarak set et
+        {
+            method: ["POST"],
+            matcher: "/auth/session",
+            middlewares: [
+                (req: any, res: any, next: any) => {
+                    // Response'u yakala ve Set-Cookie ekle
+                    const originalJson = res.json.bind(res)
+                    res.json = function (body: any) {
+                        const token = req.headers.authorization?.replace('Bearer ', '')
+                        if (token) {
+                            res.setHeader('Set-Cookie',
+                                `_medusa_jwt_=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${10 * 60 * 60}`
+                            )
+                        }
+                        return originalJson(body)
+                    }
+                    next()
+                }
+            ]
+        },
+        // ===== END SESSION COOKIE FIX =====
         {
             method: ["GET"],
             matcher: "/uploads-debug",
