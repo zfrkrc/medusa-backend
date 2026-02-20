@@ -38,7 +38,7 @@ RUN yarn build
 
 # .medusa/server içindeki production bağımlılıklarını kur
 WORKDIR /app/.medusa/server
-RUN corepack enable && yarn install --production
+RUN corepack enable && yarn install
 
 # Stage 3: Runner - sadece gerekli dosyalarla çalıştır
 FROM node:20-alpine AS runner
