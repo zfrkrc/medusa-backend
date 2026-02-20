@@ -32,6 +32,8 @@
     "@medusajs/file-s3": "2.12.6",
     "@medusajs/framework": "2.12.6",
     "@medusajs/medusa": "2.12.6",
+    "@medusajs/event-bus-redis": "2.12.6",
+    "@medusajs/cache-redis": "2.12.6",
     "express": "^4.19.2",
     "nodemailer": "^6.9.13"
   },
