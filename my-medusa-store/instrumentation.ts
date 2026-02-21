@@ -1,37 +1,21 @@
-/**
- * Medusa Instrumentation Hook
- * 
- * Bu dosya, Medusa başlamadan ÖNCE çalışır (–require veya Node.js register aracılığıyla).
- * Bu sayede authenticate middleware'i, route'lar kaydedilmeden ÖNCE patch'lenebilir.
- * 
- * Neden burada?
- * - middlewares.ts: Route kayıtlarından SONRA yüklenir → patch çalışır ama route'lar
- *   zaten orijinal authenticate() referansını almış olur.
- * - instrumentation.ts: Her şeyden ÖNCE yüklenir → patch route kayıtlarından önce devreye girer.
- */
-
 import path from "path"
 
-// ============================================================
-// COOKIE AUTH PATCH
-// _medusa_jwt_ cookie'sindeki JWT'yi Authorization header'a çevirir.
-// Admin panel page refresh sonrası oturum kaybını önler.
-// ============================================================
-function patchCookieAuth() {
+function patchAuthenticateModule(modulePath: string, label: string) {
     try {
-        const authModulePath = path.join(
-            process.cwd(),
-            "node_modules", "@medusajs", "framework",
-            "dist", "http", "middlewares", "authenticate-middleware"
-        )
+        const fullPath = path.isAbsolute(modulePath)
+            ? modulePath
+            : path.join(process.cwd(), "node_modules", modulePath)
 
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const authModule = require(authModulePath)
+        const authModule = require(fullPath)
 
-        // Çift patch'lemeyi engelle
-        if (authModule.authenticate?.__cookiePatched) {
-            console.log("[cookie-auth] ⏭️  Already patched, skipping")
-            return
+        if (!authModule || !authModule.authenticate) {
+            return false
+        }
+
+        if (authModule.authenticate.__cookiePatched) {
+            console.log(`[cookie-auth] ⏭️  ${label} already patched`)
+            return true
         }
 
         const originalAuthenticate = authModule.authenticate
@@ -40,18 +24,11 @@ function patchCookieAuth() {
             const originalMiddleware = originalAuthenticate(...args)
 
             return async function (req: any, res: any, next: any) {
-                // /admin/users/me için koşulsuz log — patch çağrılıyor mu?
-                if (req.path && req.path.includes('users/me')) {
-                    const hasAuth = !!req.headers.authorization
-                    const hasCookie = !!req.headers.cookie
-                    const hasJwtCookie = hasCookie && req.headers.cookie.includes('_medusa_jwt_=')
-                    console.log(`[instr-patch] 📍 users/me intercept | auth:${hasAuth} | cookie:${hasCookie} | jwtCookie:${hasJwtCookie}`)
-                    if (hasAuth) {
-                        console.log(`[instr-patch]   Bearer ilk 30: ${req.headers.authorization.substring(0, 37)}...`)
-                    }
+                // Her istekte bir kez log atalım (debug için)
+                if (req.path?.includes('users/me')) {
+                    console.log(`[cookie-auth] 📍 Intercepted: ${req.method} ${req.path} (via ${label})`)
                 }
 
-                // Cookie'den JWT oku, Authorization header yoksa ekle
                 if (!req.headers.authorization && req.headers.cookie) {
                     const cookies: string = req.headers.cookie
                     const match = cookies
@@ -64,23 +41,33 @@ function patchCookieAuth() {
                         )
                         if (token) {
                             req.headers.authorization = `Bearer ${token}`
-                            console.log(`[cookie-auth] 🍪→🔑 Cookie'den token inject edildi: ${req.method} ${req.path}`)
+                            console.log(`[cookie-auth] 🍪→🔑 Token injected from cookie`)
                         }
                     }
                 }
-
                 return originalMiddleware(req, res, next)
             }
         }
 
         authModule.authenticate.__cookiePatched = true
-        console.log("[cookie-auth] ✅ Auth middleware patched (instrumentation.ts)")
+        console.log(`[cookie-auth] ✅ Patched: ${label}`)
+        return true
     } catch (e: any) {
-        console.error("[cookie-auth] ❌ Patch failed:", e.message)
+        // Hata verirse sadece logla, uygulamayı durdurma
+        return false
     }
 }
 
-// register() Medusa tarafından en erken aşamada çağrılır
 export function register() {
-    patchCookieAuth()
+    console.log("[cookie-auth] Starting patch process...")
+
+    // Olası tüm lokasyonları patch'le
+    // grep çıktısına göre @medusajs/medusa paketindeki yol: dist/api/utils/middlewares/authenticate-middleware
+    const paths = [
+        "@medusajs/framework/dist/http/middlewares/authenticate-middleware",
+        "@medusajs/medusa/dist/api/utils/middlewares/authenticate-middleware",
+        "@medusajs/medusa/dist/http/middlewares/authenticate-middleware"
+    ]
+
+    paths.forEach(p => patchAuthenticateModule(p, p))
 }
