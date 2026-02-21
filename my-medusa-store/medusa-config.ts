@@ -8,6 +8,7 @@ import path from "path"
     try {
       const paths = [
         "@medusajs/framework/dist/http/middlewares/authenticate-middleware",
+        "@medusajs/medusa/dist/utils/middlewares/authenticate-middleware",
         "@medusajs/medusa/dist/api/utils/middlewares/authenticate-middleware",
         "@medusajs/medusa/dist/http/middlewares/authenticate-middleware"
       ]
@@ -15,11 +16,18 @@ import path from "path"
       paths.forEach(modulePath => {
         try {
           const fullPath = path.join(process.cwd(), "node_modules", modulePath)
-          const authModule = require(fullPath)
+          let authModule;
+          try {
+            authModule = require(fullPath)
+          } catch (e) { return; }
 
-          if (authModule && authModule.authenticate && !authModule.authenticate.__cookiePatched) {
+          if (authModule && authModule.authenticate) {
+            if (authModule.authenticate.__cookiePatched) {
+              console.log(`[cookie-auth] ⏭️  Already patched: ${modulePath}`)
+              return
+            }
+
             const originalAuthenticate = authModule.authenticate
-
             authModule.authenticate = function (...args: any[]) {
               const originalMiddleware = originalAuthenticate(...args)
               return async function (req: any, res: any, next: any) {
@@ -29,7 +37,7 @@ import path from "path"
                     const token = decodeURIComponent(match.split("=").slice(1).join("=").trim())
                     if (token) {
                       req.headers.authorization = `Bearer ${token}`
-                      console.log(`[cookie-auth] 🍪→🔑 Token injected: ${req.method} ${req.path}`)
+                      console.log(`[cookie-auth] 🍪→🔑 Injected (${modulePath.split('/')[1]}): ${req.method} ${req.path}`)
                     }
                   }
                 }
@@ -39,10 +47,12 @@ import path from "path"
             authModule.authenticate.__cookiePatched = true
             console.log(`[cookie-auth] ✅ Patched: ${modulePath}`)
           }
-        } catch (e) { }
+        } catch (e: any) {
+          console.log(`[cookie-auth] ❌ Error patching ${modulePath}: ${e.message}`)
+        }
       })
     } catch (err: any) {
-      console.error("[cookie-auth] ❌ Patch failed:", err.message)
+      console.error("[cookie-auth] ❌ Global patch error:", err.message)
     }
   })()
 // ============================================================
