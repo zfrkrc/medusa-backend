@@ -40,6 +40,17 @@ function patchCookieAuth() {
             const originalMiddleware = originalAuthenticate(...args)
 
             return async function (req: any, res: any, next: any) {
+                // /admin/users/me için koşulsuz log — patch çağrılıyor mu?
+                if (req.path && req.path.includes('users/me')) {
+                    const hasAuth = !!req.headers.authorization
+                    const hasCookie = !!req.headers.cookie
+                    const hasJwtCookie = hasCookie && req.headers.cookie.includes('_medusa_jwt_=')
+                    console.log(`[instr-patch] 📍 users/me intercept | auth:${hasAuth} | cookie:${hasCookie} | jwtCookie:${hasJwtCookie}`)
+                    if (hasAuth) {
+                        console.log(`[instr-patch]   Bearer ilk 30: ${req.headers.authorization.substring(0, 37)}...`)
+                    }
+                }
+
                 // Cookie'den JWT oku, Authorization header yoksa ekle
                 if (!req.headers.authorization && req.headers.cookie) {
                     const cookies: string = req.headers.cookie
