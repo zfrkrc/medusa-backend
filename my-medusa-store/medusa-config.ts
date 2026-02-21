@@ -41,7 +41,7 @@ import path from "path"
           }
         } catch (e) { }
       })
-    } catch (err) {
+    } catch (err: any) {
       console.error("[cookie-auth] ❌ Patch failed:", err.message)
     }
   })()
