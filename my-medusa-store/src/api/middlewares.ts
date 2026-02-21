@@ -18,30 +18,49 @@ function getCookieValue(req: any, name: string): string | null {
 export default defineMiddlewares({
     routes: [
         // ===== SESSION COOKIE WRITER =====
-        // /auth/session POST → JWT'yi HTTP-only cookie olarak set et
-        // (Cookie reader artık src/loaders/cookie-auth.ts tarafından framework seviyesinde yapılıyor)
         {
             method: ["POST"],
             matcher: "/auth/session",
             middlewares: [
                 (req: any, res: any, next: any) => {
                     const token = req.headers.authorization?.replace('Bearer ', '')
+                    console.log(`[session-debug] POST /auth/session | token: ${token ? 'MEVCUT' : 'YOK'}`)
                     if (token) {
                         const origWriteHead = res.writeHead
                         res.writeHead = function (statusCode: number, ...args: any[]) {
                             if (statusCode >= 200 && statusCode < 300) {
+                                console.log(`[session-debug] ✅ Set-Cookie ekleniyor (status: ${statusCode})`)
                                 res.setHeader('Set-Cookie',
                                     `_medusa_jwt_=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${10 * 60 * 60}`
                                 )
                             }
                             return origWriteHead.call(res, statusCode, ...args)
                         }
+                    } else {
+                        console.log(`[session-debug] ⚠️  Token yok — cookie SET EDİLMEYECEK!`)
                     }
                     next()
                 }
             ]
         },
-        // ===== END SESSION COOKIE =====
+        // ===== ADMIN REQUEST DEBUG =====
+        {
+            method: ["GET"],
+            matcher: "/admin/users/me",
+            middlewares: [
+                (req: any, res: any, next: any) => {
+                    const hasAuth = !!req.headers.authorization
+                    const hasCookie = !!req.headers.cookie
+                    const hasJwtCookie = hasCookie && req.headers.cookie.includes('_medusa_jwt_=')
+                    console.log(`[admin-debug] GET /admin/users/me | auth:${hasAuth} | cookie:${hasCookie} | jwtCookie:${hasJwtCookie}`)
+                    if (hasAuth) {
+                        console.log(`[admin-debug]   Auth: ${req.headers.authorization.substring(0, 40)}...`)
+                    }
+                    next()
+                }
+            ]
+        },
+        // ===== END DEBUG =====
         {
             method: ["GET"],
             matcher: "/uploads-debug",
