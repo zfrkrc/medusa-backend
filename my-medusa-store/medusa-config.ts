@@ -1,4 +1,51 @@
 import { loadEnv, defineConfig } from '@medusajs/framework/utils'
+import path from "path"
+
+  // ============================================================
+  // 🛡️ COOKIE AUTH PATCH (GUARANTEED EXECUTION)
+  // ============================================================
+  ; (function patchAuthenticate() {
+    try {
+      const paths = [
+        "@medusajs/framework/dist/http/middlewares/authenticate-middleware",
+        "@medusajs/medusa/dist/api/utils/middlewares/authenticate-middleware",
+        "@medusajs/medusa/dist/http/middlewares/authenticate-middleware"
+      ]
+
+      paths.forEach(modulePath => {
+        try {
+          const fullPath = path.join(process.cwd(), "node_modules", modulePath)
+          const authModule = require(fullPath)
+
+          if (authModule && authModule.authenticate && !authModule.authenticate.__cookiePatched) {
+            const originalAuthenticate = authModule.authenticate
+
+            authModule.authenticate = function (...args: any[]) {
+              const originalMiddleware = originalAuthenticate(...args)
+              return async function (req: any, res: any, next: any) {
+                if (!req.headers.authorization && req.headers.cookie) {
+                  const match = req.headers.cookie.split(";").find((c: any) => c.trim().startsWith("_medusa_jwt_="))
+                  if (match) {
+                    const token = decodeURIComponent(match.split("=").slice(1).join("=").trim())
+                    if (token) {
+                      req.headers.authorization = `Bearer ${token}`
+                      console.log(`[cookie-auth] 🍪→🔑 Token injected: ${req.method} ${req.path}`)
+                    }
+                  }
+                }
+                return originalMiddleware(req, res, next)
+              }
+            }
+            authModule.authenticate.__cookiePatched = true
+            console.log(`[cookie-auth] ✅ Patched: ${modulePath}`)
+          }
+        } catch (e) { }
+      })
+    } catch (err) {
+      console.error("[cookie-auth] ❌ Patch failed:", err.message)
+    }
+  })()
+// ============================================================
 
 loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 loadEnv(process.env.NODE_ENV || 'development', '../') // Docker'daki üst klasördeki .env için
