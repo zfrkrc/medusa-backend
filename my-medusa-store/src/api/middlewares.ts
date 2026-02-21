@@ -1,72 +1,9 @@
 import { defineMiddlewares } from "@medusajs/medusa"
-import express from "express"
 import path from "path"
-import fs from "fs"
 
-    // ============================================================
-    // COOKIE AUTH PATCH — Module seviyesinde çalışır
-    // Medusa v2, src/loaders/ dizinini otomatik taramıyor.
-    // Bu dosya Medusa tarafından route kayıtlarından ÖNCE yüklenir,
-    // bu yüzden authenticate factory fonksiyonunu burada patch'liyoruz.
-    // ============================================================
-    ; (function patchCookieAuth() {
-        try {
-            const authModulePath = path.join(
-                process.cwd(),
-                "node_modules", "@medusajs", "framework",
-                "dist", "http", "middlewares", "authenticate-middleware"
-            )
-            const authModule = require(authModulePath)
-            const originalAuthenticate = authModule.authenticate
-
-            if (originalAuthenticate.__cookiePatched) {
-                console.log("[cookie-auth] ⏭️  Already patched, skipping")
-                return
-            }
-
-            authModule.authenticate = function (...args: any[]) {
-                const originalMiddleware = originalAuthenticate(...args)
-
-                return async function (req: any, res: any, next: any) {
-                    // DEBUG: Her istekte patch'in çağrıldığını logla
-                    const hasAuth = !!req.headers.authorization
-                    const hasCookie = !!req.headers.cookie
-                    const hasJwtCookie = hasCookie && req.headers.cookie.includes('_medusa_jwt_=')
-                    if (req.path && (req.path.includes('users/me') || req.path.includes('auth'))) {
-                        console.log(`[cookie-auth-debug] ${req.method} ${req.path} | auth:${hasAuth} | cookie:${hasCookie} | jwtCookie:${hasJwtCookie}`)
-                    }
-
-                    // Cookie'den JWT oku ve Authorization header'a ekle
-                    if (!req.headers.authorization && req.headers.cookie) {
-                        const cookies: string = req.headers.cookie
-                        const match = cookies
-                            .split(";")
-                            .find((c: string) => c.trim().startsWith("_medusa_jwt_="))
-
-                        if (match) {
-                            const token = decodeURIComponent(
-                                match.split("=").slice(1).join("=").trim()
-                            )
-                            if (token) {
-                                console.log(`[cookie-auth-debug] ✅ Cookie'den token okundu, Authorization header eklendi`)
-                                req.headers.authorization = `Bearer ${token}`
-                            }
-                        } else {
-                            if (hasJwtCookie === false && hasCookie) {
-                                console.log(`[cookie-auth-debug] ⚠️  Cookie var ama _medusa_jwt_ yok. Mevcut cookies: ${req.headers.cookie.substring(0, 100)}`)
-                            }
-                        }
-                    }
-                    return originalMiddleware(req, res, next)
-                }
-            }
-
-            authModule.authenticate.__cookiePatched = true
-            console.log("[cookie-auth] ✅ Auth middleware patched for cookie support")
-        } catch (e: any) {
-            console.error("[cookie-auth] ❌ Failed to patch auth middleware:", e.message)
-        }
-    })()
+// ============================================================
+// Cookie Auth Patch artık instrumentation.ts içinde.
+// (Medusa route kayıtlarından ÖNCE çalışması için oraya taşındı)
 // ============================================================
 
 // Helper: Cookie'den değer okuma (cookie-parser gerektirmez)
