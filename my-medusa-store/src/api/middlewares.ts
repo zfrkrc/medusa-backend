@@ -28,6 +28,14 @@ import fs from "fs"
                 const originalMiddleware = originalAuthenticate(...args)
 
                 return async function (req: any, res: any, next: any) {
+                    // DEBUG: Her istekte patch'in çağrıldığını logla
+                    const hasAuth = !!req.headers.authorization
+                    const hasCookie = !!req.headers.cookie
+                    const hasJwtCookie = hasCookie && req.headers.cookie.includes('_medusa_jwt_=')
+                    if (req.path && (req.path.includes('users/me') || req.path.includes('auth'))) {
+                        console.log(`[cookie-auth-debug] ${req.method} ${req.path} | auth:${hasAuth} | cookie:${hasCookie} | jwtCookie:${hasJwtCookie}`)
+                    }
+
                     // Cookie'den JWT oku ve Authorization header'a ekle
                     if (!req.headers.authorization && req.headers.cookie) {
                         const cookies: string = req.headers.cookie
@@ -40,7 +48,12 @@ import fs from "fs"
                                 match.split("=").slice(1).join("=").trim()
                             )
                             if (token) {
+                                console.log(`[cookie-auth-debug] ✅ Cookie'den token okundu, Authorization header eklendi`)
                                 req.headers.authorization = `Bearer ${token}`
+                            }
+                        } else {
+                            if (hasJwtCookie === false && hasCookie) {
+                                console.log(`[cookie-auth-debug] ⚠️  Cookie var ama _medusa_jwt_ yok. Mevcut cookies: ${req.headers.cookie.substring(0, 100)}`)
                             }
                         }
                     }
