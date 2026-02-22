@@ -1,4 +1,4 @@
-export default async function fixPriceScale({ container }) {
+export default async function fixPriceScale({ container }: any) {
     const logger = container.resolve("logger")
     const pricingModuleService = container.resolve("pricingModuleService")
 
@@ -7,7 +7,7 @@ export default async function fixPriceScale({ container }) {
     const priceSets = await pricingModuleService.listPriceSets({}, { relations: ["prices"] })
 
     for (const ps of priceSets) {
-        const tryPrice = ps.prices?.find((p) => p.currency_code === "try")
+        const tryPrice = ps.prices?.find((p: any) => p.currency_code === "try")
         if (tryPrice) {
             const currentAmount = Number(tryPrice.amount)
             if (currentAmount < 10000) {
@@ -18,10 +18,9 @@ export default async function fixPriceScale({ container }) {
                         prices: [{ id: tryPrice.id, amount: newAmount, currency_code: "try" }]
                     }
                 ])
-                logger.info(`Düzenlendi: ${currentAmount} -> ${newAmount} (${newAmount / 100} TL)`)
+                logger.info(`Düzenlendi: ${currentAmount} -> ${newAmount}`)
             }
         }
     }
-
-    logger.info("🎉 Tüm ana fiyatlar kuruş formatına çekildi.")
+    logger.info("🎉 Bitti.")
 }

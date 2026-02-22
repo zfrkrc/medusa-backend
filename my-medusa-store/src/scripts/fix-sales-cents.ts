@@ -1,4 +1,4 @@
-export default async function fixSalesCents({ container }) {
+export default async function fixSalesCents({ container }: any) {
     const logger = container.resolve("logger")
     const pricingModuleService = container.resolve("pricingModuleService")
 
@@ -8,11 +8,11 @@ export default async function fixSalesCents({ container }) {
 
     for (const pl of priceLists) {
         const updates = []
-        for (const price of pl.prices || []) {
-            const amount = Number(price.amount)
+        for (const price of (pl.prices || [])) {
+            const amount = Number((price as any).amount)
             if (amount < 10000) {
                 updates.push({
-                    id: price.id,
+                    id: (price as any).id,
                     amount: amount * 100
                 })
             }
@@ -20,9 +20,8 @@ export default async function fixSalesCents({ container }) {
 
         if (updates.length > 0) {
             await pricingModuleService.updatePrices(updates)
-            logger.info(`${pl.title} listesinde ${updates.length} fiyat düzeltildi.`)
+            logger.info(`${pl.title} listesinde fiyatlar düzeltildi.`)
         }
     }
-
     logger.info("🎉 İşlem tamam.")
 }

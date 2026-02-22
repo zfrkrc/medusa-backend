@@ -1,15 +1,14 @@
-export default async function cleanAndCreateSales({ container }) {
+export default async function cleanAndCreateSales({ container }: any) {
     const logger = container.resolve("logger")
     const productModuleService = container.resolve("productModuleService")
     const pricingModuleService = container.resolve("pricingModuleService")
     const remoteQuery = container.resolve("remoteQuery")
 
-    logger.info("İndirimler temizleniyor ve %25 indirim tanımlanıyor...")
+    logger.info("İndirimler temizleniyor...")
 
     const allPriceLists = await pricingModuleService.listPriceLists({})
     if (allPriceLists.length > 0) {
-        await pricingModuleService.deletePriceLists(allPriceLists.map((pl) => pl.id))
-        logger.info("Eski indirimler silindi.")
+        await pricingModuleService.deletePriceLists(allPriceLists.map((pl: any) => pl.id))
     }
 
     const products = await productModuleService.listProducts(
@@ -29,12 +28,11 @@ export default async function cleanAndCreateSales({ container }) {
             if (links && links.length > 0) {
                 const priceSetId = links[0].price_set_id
                 const priceSet = await pricingModuleService.retrievePriceSet(priceSetId, { relations: ["prices"] })
-                const tryPrice = priceSet.prices?.find((p) => p.currency_code === "try")
+                const tryPrice = priceSet.prices?.find((p: any) => p.currency_code === "try")
 
                 if (tryPrice) {
-                    const originalAmount = Number(tryPrice.amount)
                     prices.push({
-                        amount: Math.floor(originalAmount * 0.75), // %25 indirim
+                        amount: Math.floor(Number(tryPrice.amount) * 0.75),
                         currency_code: "try",
                         price_set_id: priceSetId
                     })
@@ -47,12 +45,11 @@ export default async function cleanAndCreateSales({ container }) {
         await pricingModuleService.createPriceLists([
             {
                 title: "Genel İndirim",
-                description: "Tüm ürünlerde %25 indirim",
                 type: "sale",
                 status: "active",
                 prices: prices
             }
         ])
-        logger.info(`🎉 ${prices.length} adet varyant için indirim tanımlandı.`)
+        logger.info(`🎉 İndirimler tanımlandı.`)
     }
 }
