@@ -1,6 +1,5 @@
 export default async function cleanAndCreateSales({ container }: any) {
     const logger = container.resolve("logger")
-    // Medusa v2 servis isimleri: 'product' ve 'pricing'
     const productModuleService = container.resolve("product")
     const pricingModuleService = container.resolve("pricing")
     const remoteQuery = container.resolve("remoteQuery")
@@ -10,6 +9,7 @@ export default async function cleanAndCreateSales({ container }: any) {
     const allPriceLists = await pricingModuleService.listPriceLists({})
     if (allPriceLists.length > 0) {
         await pricingModuleService.deletePriceLists(allPriceLists.map((pl: any) => pl.id))
+        logger.info("Eski indirimler silindi.")
     }
 
     const products = await productModuleService.listProducts(
@@ -32,8 +32,10 @@ export default async function cleanAndCreateSales({ container }: any) {
                 const tryPrice = priceSet.prices?.find((p: any) => p.currency_code === "try")
 
                 if (tryPrice) {
+                    const originalAmount = Number(tryPrice.amount)
+                    // Fiyat zaten kuruş formatındaysa indirim de kuruş formatında olmalı
                     prices.push({
-                        amount: Math.floor(Number(tryPrice.amount) * 0.75),
+                        amount: Math.floor(originalAmount * 0.75),
                         currency_code: "try",
                         price_set_id: priceSetId
                     })
@@ -46,11 +48,14 @@ export default async function cleanAndCreateSales({ container }: any) {
         await pricingModuleService.createPriceLists([
             {
                 title: "Genel İndirim",
+                description: "Tüm ürünlerde %25 indirim", // Bu alan zorunlu
                 type: "sale",
                 status: "active",
                 prices: prices
             }
         ])
-        logger.info(`🎉 İndirimler tanımlandı.`)
+        logger.info(`🎉 ${prices.length} adet varyant için indirim tanımlandı.`)
+    } else {
+        logger.warn("İndirim tanımlanacak uygun ürün/fiyat bulunamadı.")
     }
 }
