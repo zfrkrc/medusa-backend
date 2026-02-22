@@ -31,13 +31,13 @@ export default async function updateProductPrices({ container }: ExecArgs) {
 
             try {
                 // Mevcut price_set var mı bakalım
-                const query = {
-                    product_variant_price_set: {
-                        __args: { variant_id: [variant.id] },
-                        fields: ["price_set_id"],
+                const links = await remoteQuery({
+                    entryPoint: "product_variant_price_set",
+                    fields: ["price_set_id"],
+                    variables: {
+                        variant_id: [variant.id],
                     },
-                }
-                const links = await remoteQuery(query)
+                }) as any[]
 
                 let priceSetId: string
 
@@ -48,7 +48,7 @@ export default async function updateProductPrices({ container }: ExecArgs) {
                     const tryPrice = priceSet.prices?.find(p => p.currency_code === "try")
 
                     if (tryPrice) {
-                        await pricingModuleService.updatePriceSets([
+                        await (pricingModuleService as any).upsertPriceSets([
                             {
                                 id: priceSetId,
                                 prices: [{ id: tryPrice.id, amount: amount }]
@@ -56,7 +56,7 @@ export default async function updateProductPrices({ container }: ExecArgs) {
                         ])
                     } else {
                         // Price set var ama TRY yok
-                        await pricingModuleService.updatePriceSets([
+                        await (pricingModuleService as any).upsertPriceSets([
                             {
                                 id: priceSetId,
                                 prices: [{ currency_code: "try", amount: amount }]

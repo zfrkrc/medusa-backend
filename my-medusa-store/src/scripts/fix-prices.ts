@@ -12,11 +12,12 @@ export default async function fixPrices({ container }: ExecArgs) {
     const priceSets = await pricingModuleService.listPriceSets({}, { relations: ["prices"] })
 
     for (const ps of priceSets) {
-        const tryPrice = ps.prices?.find(p => p.currency_code === "try")
-        if (tryPrice && tryPrice.amount > 3000) {
+        const tryPrice = ps.prices?.find((p: any) => p.currency_code === "try")
+        const amount = Number(tryPrice?.amount || 0)
+        if (tryPrice && amount > 3000) {
             // Eğer fiyat 3000'den büyükse muhtemelen 100 ile çarpılmış halidir
-            const newAmount = Math.floor(tryPrice.amount / 100)
-            await pricingModuleService.updatePriceSets([
+            const newAmount = Math.floor(amount / 100)
+            await (pricingModuleService as any).upsertPriceSets([
                 {
                     id: ps.id,
                     prices: [
@@ -27,7 +28,7 @@ export default async function fixPrices({ container }: ExecArgs) {
                     ]
                 }
             ])
-            logger.info(`Fiyat düzeltildi: ${tryPrice.amount} -> ${newAmount}`)
+            logger.info(`Fiyat düzeltildi: ${amount} -> ${newAmount}`)
         }
     }
 

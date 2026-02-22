@@ -15,13 +15,13 @@ export default async function updateSingleProduct({ container }: ExecArgs) {
     const variant = product.variants[0]
     const amount = 1250 // 1,250.00 TL
 
-    const query = {
-        product_variant_price_set: {
-            __args: { variant_id: [variant.id] },
-            fields: ["price_set_id"],
+    const links = await remoteQuery({
+        entryPoint: "product_variant_price_set",
+        fields: ["price_set_id"],
+        variables: {
+            variant_id: [variant.id],
         },
-    }
-    const links = await remoteQuery(query)
+    }) as any[]
 
     if (links && links.length > 0) {
         const priceSetId = links[0].price_set_id
@@ -29,7 +29,7 @@ export default async function updateSingleProduct({ container }: ExecArgs) {
         const tryPrice = priceSet.prices?.find(p => p.currency_code === "try")
 
         if (tryPrice) {
-            await pricingModuleService.updatePriceSets([{
+            await (pricingModuleService as any).upsertPriceSets([{
                 id: priceSetId,
                 prices: [{ id: tryPrice.id, amount: amount }]
             }])

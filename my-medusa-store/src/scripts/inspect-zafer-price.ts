@@ -15,15 +15,13 @@ export default async function inspectPrices({ container }: ExecArgs) {
 
         // Link'ten price_set_id bulalım
         const remoteQuery = container.resolve("remoteQuery")
-        const query = {
-            product_variant_price_set: {
-                __args: {
-                    variant_id: [variantId],
-                },
-                fields: ["price_set_id"],
+        const links = await remoteQuery({
+            entryPoint: "product_variant_price_set",
+            fields: ["price_set_id"],
+            variables: {
+                variant_id: [variantId],
             },
-        }
-        const links = await remoteQuery(query)
+        }) as any[]
         console.log("Links:", JSON.stringify(links, null, 2))
 
         if (links.length > 0) {

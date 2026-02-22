@@ -11,17 +11,18 @@ export default async function fixPricesScale({ container }: ExecArgs) {
     const updates = []
 
     for (const ps of priceSets) {
-        const tryPrice = ps.prices?.find(p => p.currency_code === "try")
-        if (tryPrice && tryPrice.amount > 3000) {
+        const tryPrice = ps.prices?.find((p: any) => p.currency_code === "try")
+        const amount = Number(tryPrice?.amount || 0)
+        if (tryPrice && amount > 3000) {
             updates.push({
                 id: ps.id,
-                prices: [{ id: tryPrice.id, amount: Math.floor(tryPrice.amount / 100) }]
+                prices: [{ id: tryPrice.id, amount: Math.floor(amount / 100) }]
             })
         }
     }
 
     if (updates.length > 0) {
-        await pricingModuleService.updatePriceSets(updates)
+        await (pricingModuleService as any).upsertPriceSets(updates)
         logger.info(`${updates.length} fiyat düzeltildi.`)
     }
 
