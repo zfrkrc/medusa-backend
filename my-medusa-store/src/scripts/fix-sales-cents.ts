@@ -1,6 +1,6 @@
 export default async function fixSalesCents({ container }: any) {
     const logger = container.resolve("logger")
-    const pricingModuleService = container.resolve("pricingModuleService")
+    const pricingModuleService = container.resolve("pricing")
 
     logger.info("İndirimli fiyatlar kuruş formatına çevriliyor...")
 

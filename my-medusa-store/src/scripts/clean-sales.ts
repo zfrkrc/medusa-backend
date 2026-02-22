@@ -1,7 +1,8 @@
 export default async function cleanAndCreateSales({ container }: any) {
     const logger = container.resolve("logger")
-    const productModuleService = container.resolve("productModuleService")
-    const pricingModuleService = container.resolve("pricingModuleService")
+    // Medusa v2 servis isimleri: 'product' ve 'pricing'
+    const productModuleService = container.resolve("product")
+    const pricingModuleService = container.resolve("pricing")
     const remoteQuery = container.resolve("remoteQuery")
 
     logger.info("İndirimler temizleniyor...")

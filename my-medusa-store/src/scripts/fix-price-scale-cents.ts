@@ -1,6 +1,7 @@
 export default async function fixPriceScale({ container }: any) {
     const logger = container.resolve("logger")
-    const pricingModuleService = container.resolve("pricingModuleService")
+    // Medusa v2'de servis adı 'pricing'dir
+    const pricingModuleService = container.resolve("pricing")
 
     logger.info("Fiyatlar TL bazında 100 ile çarpılarak cent (kuruş) formatına getiriliyor...")
 
