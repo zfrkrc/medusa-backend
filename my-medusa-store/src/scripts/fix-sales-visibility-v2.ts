@@ -13,17 +13,20 @@ export default async function fixSalesVisibilityV2({ container }: ExecArgs) {
     logger.info("İndirimlerin görünürlüğü düzeltiliyor (V2 - Sales Channel & Region)...")
 
     // 1. Önceki listeleri temizleyelim
-    const oldPriceLists = await pricingModuleService.listPriceLists({
-        title: ["Büyük İndirim", "Sezon Sonu İndirimi"]
-    })
+    const allPriceLists = await pricingModuleService.listPriceLists({})
+    const oldPriceLists = allPriceLists.filter(pl =>
+        ["Büyük İndirim", "Sezon Sonu İndirimi"].includes(pl.title || "")
+    )
+
     if (oldPriceLists.length > 0) {
         await pricingModuleService.deletePriceLists(oldPriceLists.map(pl => pl.id))
     }
 
     // 2. Region ve Sales Channel bilgilerini alalım
     const [region] = await regionModuleService.listRegions({})
-    const [salesChannel] = await salesChannelModuleService.listSalesChannels({ name: "Türkiye Mağazası" })
-    const defaultSalesChannel = (await salesChannelModuleService.listSalesChannels({})).find(sc => sc.name === "Default Sales Channel")
+    const scs = await salesChannelModuleService.listSalesChannels({})
+    const salesChannel = scs.find(sc => sc.name === "Türkiye Mağazası")
+    const defaultSalesChannel = scs.find(sc => sc.name === "Default Sales Channel")
 
     const scId = salesChannel?.id || defaultSalesChannel?.id
 
@@ -81,13 +84,16 @@ export default async function fixSalesVisibilityV2({ container }: ExecArgs) {
         ])
 
         // Link price list to sales channel
-        await remoteLink.create([
-            {
-                [Modules.PRICING]: { price_list_id: priceList.id },
-                [Modules.SALES_CHANNEL]: { sales_channel_id: scId }
-            }
-        ])
-
-        logger.info(`🎉 İndirimler tanımlandı ve ${scId} nolu satış kanalına bağlandı.`)
+        try {
+            await remoteLink.create([
+                {
+                    [Modules.PRICING]: { price_list_id: priceList.id },
+                    [Modules.SALES_CHANNEL]: { sales_channel_id: scId }
+                }
+            ])
+            logger.info(`🎉 İndirimler tanımlandı ve ${scId} nolu satış kanalına bağlandı.`)
+        } catch (e: any) {
+            logger.warn(`Satış kanalı bağlantısı kurulamadı: ${e.message}`)
+        }
     }
 }

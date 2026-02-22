@@ -10,9 +10,11 @@ export default async function fixSalesVisibility({ container }: ExecArgs) {
     logger.info("İndirimlerin görünürlüğü düzeltiliyor...")
 
     // 1. Önceki listeleri temizleyelim
-    const oldPriceLists = await pricingModuleService.listPriceLists({
-        title: ["Büyük İndirim", "Sezon Sonu İndirimi"]
-    })
+    const allPriceLists = await pricingModuleService.listPriceLists({})
+    const oldPriceLists = allPriceLists.filter(pl =>
+        ["Büyük İndirim", "Sezon Sonu İndirimi"].includes(pl.title || "")
+    )
+
     if (oldPriceLists.length > 0) {
         await pricingModuleService.deletePriceLists(oldPriceLists.map(pl => pl.id))
     }

@@ -22,12 +22,8 @@ export default async function fixSalesCents({ container }: ExecArgs) {
         }
 
         if (updates.length > 0) {
-            // Price List içindeki fiyatları güncellemek için upsertPriceSets değil, doğrudan price list price'larını etkileyecek bir yol lazım.
-            // Medusa v2'de PriceList içindeki fiyatları update etmek için:
-            await pricingModuleService.updatePriceLists([{
-                id: pl.id,
-                prices: updates
-            }])
+            // Medusa v2'de PriceList içindeki fiyatları tek tek updatePrices ile güncelleyebiliriz
+            await (pricingModuleService as any).updatePrices(updates)
             logger.info(`${pl.title} listesinde ${updates.length} fiyat düzeltildi.`)
         }
     }
