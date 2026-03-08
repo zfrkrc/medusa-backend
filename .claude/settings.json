@@ -22,7 +22,17 @@
       "Bash(git push origin main)",
       "Bash(docker compose -f /c/Kodlar/medusa-stores/docker-compose.yml up -d --force-recreate hobby-storefront sedefli-storefront clay-storefront)",
       "Bash(grep -v \"^$\")",
-      "Bash(docker compose -f /c/Kodlar/medusa-stores/docker-compose.yml build sedefli-storefront clay-storefront hobby-storefront)"
+      "Bash(docker compose -f /c/Kodlar/medusa-stores/docker-compose.yml build sedefli-storefront clay-storefront hobby-storefront)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8001/)",
+      "Bash(curl -sL -o /dev/null -w \"%{http_code}\" http://localhost:8001/tr/)",
+      "Bash(curl -sL http://localhost:8001/tr/)",
+      "Bash(curl -s -D - http://localhost:8001/tr/)",
+      "Bash(curl -s -D - -H \"Cookie: _medusa_cache_id=test123\" http://localhost:8001/tr/)",
+      "Bash(curl -s -D - http://localhost:8001/tr)",
+      "Bash(curl -s -D - -H \"Cookie: _medusa_cache_id=abc123\" http://localhost:8001/tr)",
+      "Bash(curl -s -D - -H \"Cookie: _medusa_cache_id=abc123\" http://localhost:8001/tr/account)",
+      "Bash(curl -s -D - -H \"Cookie: _medusa_cache_id=abc123; _medusa_jwt=invalid_stale_token_here\" http://localhost:8001/tr/account)",
+      "Bash(grep -v \"^yarn\\\\|^$\\\\|next start\\\\|Starting\\\\|Ready\\\\|Better Auth\\\\|Network\\\\|Local\")"
     ]
   }
 }
