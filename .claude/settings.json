@@ -32,7 +32,17 @@
       "Bash(curl -s -D - -H \"Cookie: _medusa_cache_id=abc123\" http://localhost:8001/tr)",
       "Bash(curl -s -D - -H \"Cookie: _medusa_cache_id=abc123\" http://localhost:8001/tr/account)",
       "Bash(curl -s -D - -H \"Cookie: _medusa_cache_id=abc123; _medusa_jwt=invalid_stale_token_here\" http://localhost:8001/tr/account)",
-      "Bash(grep -v \"^yarn\\\\|^$\\\\|next start\\\\|Starting\\\\|Ready\\\\|Better Auth\\\\|Network\\\\|Local\")"
+      "Bash(grep -v \"^yarn\\\\|^$\\\\|next start\\\\|Starting\\\\|Ready\\\\|Better Auth\\\\|Network\\\\|Local\")",
+      "Bash(xargs grep -l \"auth.api\\\\|betterAuth\\\\|createAuthClient\")",
+      "Bash(docker exec hobby-storefront cat /app/.next/server/app/[countryCode]/\\\\\\(main\\\\\\)/account/layout.js)",
+      "Bash(docker exec hobby-storefront find /app/.next/server -name \"*.js\")",
+      "Bash(xargs grep -l \"syncBetterAuthUser\\\\|isValid\")",
+      "Bash(docker exec hobby-storefront ls /app/.next/server/app/)",
+      "Bash(docker exec hobby-storefront ls /app/)",
+      "Bash(docker exec -it hobby-storefront ls /app/)",
+      "Bash(docker exec hobby-storefront sh -c \"ls /app/\")",
+      "Bash(docker exec hobby-storefront sh -c \"ls /app/.next/server/chunks/ | head -10\")",
+      "Bash(docker exec hobby-storefront sh -c \"grep -r ''syncBetterAuthUser\\\\|isValid\\\\|Object.keys'' /app/.next/server/chunks/ 2>/dev/null | grep -o ''.{0,50}isValid.{0,50}'' | head -5\")"
     ]
   }
 }

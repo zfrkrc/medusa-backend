@@ -15,7 +15,22 @@
       "Bash(docker compose build medusa-backend)",
       "Bash(docker compose up -d --force-recreate medusa-backend)",
       "Bash(grep -r \"authClient\\\\|signIn.social\\\\|google\" c:/Kodlar/medusa-stores --include=\"*.ts\" --include=\"*.tsx\" ! -path \"*/node_modules/*\")",
-      "Bash(xargs grep -l \"useSession\\\\|getSession\\\\|signIn.social\")"
+      "Bash(xargs grep -l \"useSession\\\\|getSession\\\\|signIn.social\")",
+      "Bash(docker exec hobby-storefront sh -c \"grep -rl ''syncBetterAuthUser'' /app/.next/ 2>/dev/null | head -3\")",
+      "Bash(docker exec hobby-storefront sh -c \"grep -rl ''deriveSyncPassword\\\\|BETTER_AUTH_SECRET'' /app/.next/ 2>/dev/null | head -3\")",
+      "Bash(docker exec hobby-storefront sh -c \"grep -o ''.{0,100}isValid.{0,100}'' /app/.next/server/chunks/465.js 2>/dev/null | head -5\")",
+      "Bash(docker exec hobby-storefront sh -c \"grep -o ''.{0,30}Object.keys.{0,30}'' /app/.next/server/chunks/233.js 2>/dev/null | head -5\")",
+      "Bash(docker exec hobby-storefront sh -c \"grep -o ''.{0,100}removeAuthToken.{0,100}'' /app/.next/server/chunks/465.js 2>/dev/null | head -5\")",
+      "Bash(docker exec hobby-storefront sh -c \"grep -o ''.{50}authHeaders.{50}'' /app/.next/server/chunks/233.js 2>/dev/null | head -5\")",
+      "Bash(docker exec hobby-storefront sh -c \"grep -o ''.{50}authHeaders.{50}'' /app/.next/server/chunks/465.js 2>/dev/null | head -5\")",
+      "Bash(docker exec hobby-storefront sh -c \"ls /app/.next/server/app/ 2>/dev/null | head -20\")",
+      "Bash(docker exec hobby-storefront sh -c \"ls /app/.next/server/app/\\\\[countryCode\\\\]/\\\\\\(main\\\\\\)/account/ 2>/dev/null\")",
+      "Bash(docker exec hobby-storefront sh -c \"ls /app/.next/server/app/\\\\[countryCode\\\\]/\\\\\\(main\\\\\\)/ 2>/dev/null\")",
+      "Bash(docker exec hobby-storefront sh -c \"cat /app/src/lib/data/customer.ts 2>/dev/null | grep -A5 ''syncBetterAuthUser''\")",
+      "Bash(docker exec hobby-storefront sh -c \"grep -o ''.{0,200}deriveSyncPassword.{0,200}'' /app/.next/server/chunks/233.js 2>/dev/null | head -3\")",
+      "Bash(docker exec hobby-storefront sh -c \"grep -c ''deriveSyncPassword'' /app/.next/server/chunks/465.js 2>/dev/null\")",
+      "Bash(docker exec hobby-storefront sh -c \"grep -rl ''deriveSyncPassword'' /app/.next/ 2>/dev/null\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -H \"Cookie: _medusa_cache_id=test123\" http://localhost:8001/tr)"
     ]
   }
 }
