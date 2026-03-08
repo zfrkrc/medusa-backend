@@ -42,7 +42,8 @@
       "Bash(docker exec -it hobby-storefront ls /app/)",
       "Bash(docker exec hobby-storefront sh -c \"ls /app/\")",
       "Bash(docker exec hobby-storefront sh -c \"ls /app/.next/server/chunks/ | head -10\")",
-      "Bash(docker exec hobby-storefront sh -c \"grep -r ''syncBetterAuthUser\\\\|isValid\\\\|Object.keys'' /app/.next/server/chunks/ 2>/dev/null | grep -o ''.{0,50}isValid.{0,50}'' | head -5\")"
+      "Bash(docker exec hobby-storefront sh -c \"grep -r ''syncBetterAuthUser\\\\|isValid\\\\|Object.keys'' /app/.next/server/chunks/ 2>/dev/null | grep -o ''.{0,50}isValid.{0,50}'' | head -5\")",
+      "Bash(docker exec hobby-backend sh -c \"cat /app/medusa/node_modules/@medusajs/medusa/dist/api/admin/inventory-items/validators.js 2>/dev/null | grep -A 20 ''LocationLevel\\\\|location.level\\\\|AdminCreate''\")"
     ]
   }
 }

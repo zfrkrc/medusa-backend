@@ -14,9 +14,11 @@ RUN apk update && apk add --no-cache python3 make g++ git curl postgresql-client
 # Package dosyalarını kopyala
 COPY my-medusa-store/package.json my-medusa-store/yarn.lock* my-medusa-store/.yarnrc.yml* ./
 COPY my-medusa-store/.yarn ./.yarn/
+# Yamalar için patches dizinini kopyala (postinstall için gerekli)
+COPY my-medusa-store/patches/ ./patches/
 
-# Bağımlılıkları kur
-RUN corepack enable && yarn install
+# Bağımlılıkları kur + yamaları uygula
+RUN corepack enable && yarn install && node patches/apply-patches.js
 
 # Stage 2: Builder - uygulamayı derle
 FROM installer AS builder
@@ -36,9 +38,10 @@ RUN rm -f .env .env.local .env.development .env.production
 # Medusa build - .medusa/server dizinini oluşturur
 RUN yarn build
 
-# .medusa/server içindeki production bağımlılıklarını kur
+# .medusa/server içindeki production bağımlılıklarını kur + yamaları uygula
 WORKDIR /app/.medusa/server
-RUN corepack enable && yarn install
+COPY my-medusa-store/patches/ ./patches/
+RUN corepack enable && yarn install && node patches/apply-patches.js
 
 # Stage 3: Runner - sadece gerekli dosyalarla çalıştır
 FROM node:20-alpine AS runner

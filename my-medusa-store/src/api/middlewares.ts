@@ -66,11 +66,63 @@ export default defineMiddlewares({
             matcher: "/admin/inventory-items/:id/location-levels/batch",
             middlewares: [
                 (req: any, _res: any, next: any) => {
+                    const strip = ({ metadata: _m, ...rest }: any) => rest
+                    if (req.body?.create?.length) req.body.create = req.body.create.map(strip)
+                    if (req.body?.update?.length) req.body.update = req.body.update.map(strip)
+                    next()
+                }
+            ]
+        },
+
+        // Strip 'sales_channels' from product variant create/update
+        // (Admin UI sends sales_channels but Medusa 2.x variant schema is .strict())
+        {
+            method: ["POST", "PATCH"],
+            matcher: "/admin/products/:id/variants/:variant_id",
+            middlewares: [
+                (req: any, _res: any, next: any) => {
+                    if (req.body?.sales_channels !== undefined) {
+                        delete req.body.sales_channels
+                    }
+                    next()
+                }
+            ]
+        },
+
+        // Strip 'sales_channels' from product variant batch create
+        {
+            method: ["POST"],
+            matcher: "/admin/products/:id/variants",
+            middlewares: [
+                (req: any, _res: any, next: any) => {
+                    if (Array.isArray(req.body)) {
+                        req.body = req.body.map(({ sales_channels: _sc, ...rest }: any) => rest)
+                    } else if (req.body?.sales_channels !== undefined) {
+                        delete req.body.sales_channels
+                    }
+                    next()
+                }
+            ]
+        },
+
+        // Strip unknown fields from product batch upsert
+        {
+            method: ["POST"],
+            matcher: "/admin/products/batch",
+            middlewares: [
+                (req: any, _res: any, next: any) => {
+                    const cleanVariant = ({ sales_channels: _sc, ...rest }: any) => rest
                     if (req.body?.create?.length) {
-                        req.body.create = req.body.create.map(({ metadata: _m, ...rest }: any) => rest)
+                        req.body.create = req.body.create.map((p: any) => ({
+                            ...p,
+                            variants: p.variants?.map(cleanVariant),
+                        }))
                     }
                     if (req.body?.update?.length) {
-                        req.body.update = req.body.update.map(({ metadata: _m, ...rest }: any) => rest)
+                        req.body.update = req.body.update.map((p: any) => ({
+                            ...p,
+                            variants: p.variants?.map(cleanVariant),
+                        }))
                     }
                     next()
                 }
