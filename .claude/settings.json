@@ -10,7 +10,12 @@
       "Bash(docker compose up -d --force-recreate hobby-storefront clay-storefront sedefli-storefront)",
       "Bash(curl -si \"https://hobby.zaferkaraca.net/api/auth/sign-in/social\" -X POST -H \"Content-Type: application/json\" -d '{\"\"provider\"\":\"\"google\"\",\"\"callbackURL\"\":\"\"/account\"\"}')",
       "Bash(docker exec hobby-storefront sh -c 'echo \"\"DB=$DATABASE_URL | BETTER_AUTH_URL=$BETTER_AUTH_URL\"\"')",
-      "Read(//c/Kodlar/**)"
+      "Read(//c/Kodlar/**)",
+      "Bash(docker ps --filter \"name=clay\" --format \"{{.Names}}\\\\t{{.Status}}\")",
+      "Bash(curl -si \"http://localhost:8002/\")",
+      "Bash(curl -si \"https://claybysevgi.com/\")",
+      "Bash(curl -si \"https://claybysevgi.com/tr\")",
+      "Bash(curl -si \"https://claybysevgi.com/api/auth/sign-in/social\" -X POST -H \"Content-Type: application/json\" -d '{\"\"provider\"\":\"\"google\"\",\"\"callbackURL\"\":\"\"/account\"\"}')"
     ]
   }
 }
