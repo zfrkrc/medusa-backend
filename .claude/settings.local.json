@@ -30,7 +30,10 @@
       "Bash(docker exec hobby-storefront sh -c \"grep -o ''.{0,200}deriveSyncPassword.{0,200}'' /app/.next/server/chunks/233.js 2>/dev/null | head -3\")",
       "Bash(docker exec hobby-storefront sh -c \"grep -c ''deriveSyncPassword'' /app/.next/server/chunks/465.js 2>/dev/null\")",
       "Bash(docker exec hobby-storefront sh -c \"grep -rl ''deriveSyncPassword'' /app/.next/ 2>/dev/null\")",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -H \"Cookie: _medusa_cache_id=test123\" http://localhost:8001/tr)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -H \"Cookie: _medusa_cache_id=test123\" http://localhost:8001/tr)",
+      "Bash(docker exec hobby-backend sh -c 'psql \"\"$DATABASE_URL\"\" -c \"\"SELECT u.id, u.email FROM \\\\\"\"user\\\\\"\" u LIMIT 5;\"\" 2>&1')",
+      "Bash(docker exec hobby-backend sh -c 'psql \"\"$DATABASE_URL\"\" -c \"\"SELECT id FROM fulfillment_provider;\"\" 2>&1')",
+      "Bash(docker exec hobby-backend sh -c 'psql \"\"$DATABASE_URL\"\" -c \"\"SELECT lfp.stock_location_id, sl.name, lfp.fulfillment_provider_id FROM location_fulfillment_provider lfp JOIN stock_location sl ON sl.id = lfp.stock_location_id;\"\" 2>&1')"
     ]
   }
 }
