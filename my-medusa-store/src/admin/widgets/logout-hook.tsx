@@ -21,6 +21,11 @@ const AdminBridgeWidget = () => {
             (window as any).__MEDUSA_ADMIN_PATH__ = "/app";
         }
 
+        // Widgets için backend URL (same-origin = boş string)
+        if (typeof (window as any).__MEDUSA_BACKEND_URL__ === "undefined") {
+            (window as any).__MEDUSA_BACKEND_URL__ = "";
+        }
+
         // --- 2. LOGOUT & FETCH INTERCEPTOR ---
         if (!window.__logoutPatched) {
             const originalFetch = window.fetch

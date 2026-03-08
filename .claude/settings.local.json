@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker compose up -d --build --force-recreate medusa-backend)",
+      "Bash(docker compose -f \"c:/Kodlar/medusa-backend/docker-compose.yml\" up -d --build --force-recreate medusa-backend)",
+      "Bash(docker ps --filter name=hobby-backend --format \"{{.Status}}\")",
+      "Bash(docker ps --filter name=hobby-backend --format \"table {{.Status}}\\\\t{{.Image}}\")",
+      "Bash(docker exec hobby-backend sh -c \"cat /app/medusa/src/api/store/tr/provinces/route.js\")",
+      "Bash(curl.exe -s \"http://localhost:7001/store/tr/districts/dist_34_be%C5%9Fikta%C5%9F/neighborhoods\" -H \"x-publishable-api-key: pk_3cb3a82d96dd803a9160d6e71e78bbc793dc1847c05184e8c965a8bb9dd51319\")",
+      "Bash(docker exec hobby-backend sh -c \"psql $DATABASE_URL -c \"\"SELECT id FROM tr_district WHERE name ILIKE ''Be%ikta%'' LIMIT 3\"\" 2>&1\")",
+      "Bash(curl.exe -s \"http://localhost:7001/store/tr/provinces/prov_34/districts\" -H \"x-publishable-api-key: pk_3cb3a82d96dd803a9160d6e71e78bbc793dc1847c05184e8c965a8bb9dd51319\")",
+      "Bash(curl.exe -s -o /dev/null -w \"%{http_code}\" \"http://localhost:7001/store/tr/districts/dist_34_be%C5%9Fikta%C5%9F/neighborhoods\" -H \"x-publishable-api-key: pk_3cb3a82d96dd803a9160d6e71e78bbc793dc1847c05184e8c965a8bb9dd51319\")",
+      "Bash(curl.exe -s -o /dev/null -w \"%{http_code}\" \"http://localhost:7001/store/tr/districts/dist_34_ka%C4%B1k%C3%B6y/neighborhoods\" -H \"x-publishable-api-key: pk_3cb3a82d96dd803a9160d6e71e78bbc793dc1847c05184e8c965a8bb9dd51319\")",
+      "Bash(npx tsc --noEmit --skipLibCheck)",
+      "Bash(docker compose build medusa-backend)",
+      "Bash(docker compose up -d --force-recreate medusa-backend)",
+      "Bash(grep -r \"authClient\\\\|signIn.social\\\\|google\" c:/Kodlar/medusa-stores --include=\"*.ts\" --include=\"*.tsx\" ! -path \"*/node_modules/*\")",
+      "Bash(xargs grep -l \"useSession\\\\|getSession\\\\|signIn.social\")"
+    ]
+  }
+}

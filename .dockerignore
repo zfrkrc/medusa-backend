@@ -1,5 +1,8 @@
 # Exclusions
 node_modules/
+my-medusa-store/node_modules/
+my-medusa-store/.medusa/
+my-medusa-store/dist/
 dist/
 .next/
 .cache/

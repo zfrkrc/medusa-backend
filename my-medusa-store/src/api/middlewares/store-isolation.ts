@@ -116,9 +116,11 @@ export async function storeIsolationMiddleware(
                 query.sales_channel_id = [scId];
             }
 
-            // KRİTİK DÜZELTME: UI, 'fields' parametresi ile sorgu yaptığında metadata'yı hariç tutabilir.
-            // Bu da filtrede metadata'nın null gelmesine neden olur. Metadata'yı zorunlu ekliyoruz.
-            if (query.fields && typeof query.fields === "string") {
+            // Metadata sadece filtreleme için kullanan endpointlere eklenir (locations, customers).
+            const needsMetadata =
+                path.includes("/stock-locations") ||
+                path.includes("/customers");
+            if (needsMetadata && query.fields && typeof query.fields === "string") {
                 if (!query.fields.includes("metadata")) {
                     query.fields += ",*metadata";
                 }
