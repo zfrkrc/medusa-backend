@@ -59,6 +59,24 @@ export default defineMiddlewares({
             ]
         },
 
+        // Strip 'metadata' from inventory location-level batch requests
+        // (Admin UI sends metadata but Medusa 2.x API uses .strict() schema)
+        {
+            method: ["POST"],
+            matcher: "/admin/inventory-items/:id/location-levels/batch",
+            middlewares: [
+                (req: any, _res: any, next: any) => {
+                    if (req.body?.create?.length) {
+                        req.body.create = req.body.create.map(({ metadata: _m, ...rest }: any) => rest)
+                    }
+                    if (req.body?.update?.length) {
+                        req.body.update = req.body.update.map(({ metadata: _m, ...rest }: any) => rest)
+                    }
+                    next()
+                }
+            ]
+        },
+
         // Runs after Medusa's built-in authenticate() so auth_context is available.
         {
             method: ["GET", "POST", "PUT", "PATCH", "DELETE"],
