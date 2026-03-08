@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"http://localhost:8002/api/auth/sign-in/social\" -X POST -H \"Content-Type: application/json\" -d '{\"\"provider\"\":\"\"google\"\",\"\"callbackURL\"\":\"\"/account\"\"}')",
+      "Bash(curl -sv \"http://localhost:8002/api/auth/sign-in/social\" -X POST -H \"Content-Type: application/json\" -d '{\"\"provider\"\":\"\"google\"\",\"\"callbackURL\"\":\"\"/account\"\"}')",
+      "Bash(docker compose restart hobby-storefront clay-storefront sedefli-storefront)",
+      "Bash(curl -s \"http://localhost:8001/api/auth/sign-in/social\" -X POST -H \"Content-Type: application/json\" -d '{\"\"provider\"\":\"\"google\"\",\"\"callbackURL\"\":\"\"/account\"\"}')",
+      "Bash(curl -si \"http://localhost:8001/api/auth/sign-in/social\" -X POST -H \"Content-Type: application/json\" -d '{\"\"provider\"\":\"\"google\"\",\"\"callbackURL\"\":\"\"/account\"\"}')",
+      "Bash(docker exec hobby-storefront sh -c 'echo \"\"DB: $DATABASE_URL\"\"')",
+      "Bash(docker compose up -d --force-recreate hobby-storefront clay-storefront sedefli-storefront)"
+    ]
+  }
+}
