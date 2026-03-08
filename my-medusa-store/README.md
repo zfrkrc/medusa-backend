@@ -32,45 +32,30 @@
   </a>
 </p>
 
+## Version 3.0.0 (B2B Multi-Store Data Isolation)
+
+This version contains the ultimate data isolation matrix for running a multi-tenant B2B platform on Medusa v2.
+
+### 🛡️ Isolation Features (Ghost Mode)
+- **Orders & Products**: Isolated via Sales Channel Query Injection (`sales_channel_id`).
+- **Store Settings**: Isolated via Response Interceptors (Ghost Mode).
+- **Sales Channels**: Admin users only see their linked sales channel.
+- **Locations & Shipping**: Highly precise isolation based on `metadata.store_id`, including forced metadata query inclusion to bypass Medusa UI's partial field requests.
+- **Users**: Admin users can ONLY see their own user profile in the list (Ghost Mode). E-mail resolution via `actor_id` completely secures the admin listing.
+- **API Keys**: Completely hidden from store admins (Returns empty array).
+- **Workflows**: Personal boundaries enforced via response filtering.
+- **Regions/Tax/Tags/Types**: Shared globally without filtration.
+
+### 🐛 Critical Fixes from previous versions
+- **404 Dashboard Crash resolved**: Excluded `/admin/stores` from filtering to provide Medusa Admin UI with required payload, eliminating false 404s.
+- **Invalid Password / Scrypt Auth Hash**: Re-written `reset-password.ts` to exactly match Medusa v2's native scrypt standards (`N=32768, r=8, p=1, keyLen=72`).
+- **Location Listing Ghost Bug**: Enforced `*metadata` query params in middleware so UI always gets `store_id` data to filter.
+
 ## Compatibility
 
 This starter is compatible with versions >= 2 of `@medusajs/medusa`. 
 
-## Getting Started
-
-Visit the [Quickstart Guide](https://docs.medusajs.com/learn/installation) to set up a server.
-
-Visit the [Docs](https://docs.medusajs.com/learn/installation#get-started) to learn more about our system requirements.
-
-## What is Medusa
-
-Medusa is a set of commerce modules and tools that allow you to build rich, reliable, and performant commerce applications without reinventing core commerce logic. The modules can be customized and used to build advanced ecommerce stores, marketplaces, or any product that needs foundational commerce primitives. All modules are open-source and freely available on npm.
-
-Learn more about [Medusa’s architecture](https://docs.medusajs.com/learn/introduction/architecture) and [commerce modules](https://docs.medusajs.com/learn/fundamentals/modules/commerce-modules) in the Docs.
-
-## Build with AI Agents
-
-### Claude Code Plugin
-
-If you use AI agents like Claude Code, check out the [medusa-dev Claude Code plugin](https://github.com/medusajs/medusa-claude-plugins).
-
-### Other Agents
-
-If you use AI agents other than Claude Code, copy the [skills directory](https://github.com/medusajs/medusa-claude-plugins/tree/main/plugins/medusa-dev/skills) into your agent's relevant `skills` directory.
-
-### MCP Server
-
-You can also add the MCP server `https://docs.medusajs.com/mcp` to your AI agents to answer questions related to Medusa. The `medusa-dev` Claude Code plugin includes this MCP server by default.
-
-## Community & Contributions
-
-The community and core team are available in [GitHub Discussions](https://github.com/medusajs/medusa/discussions), where you can ask for support, discuss roadmap, and share ideas.
-
-Join our [Discord server](https://discord.com/invite/medusajs) to meet other community members.
-
-## Other channels
-
-- [GitHub Issues](https://github.com/medusajs/medusa/issues)
-- [Twitter](https://twitter.com/medusajs)
-- [LinkedIn](https://www.linkedin.com/company/medusajs)
-- [Medusa Blog](https://medusajs.com/blog/)
+## Build Instructions
+1. `docker compose up -d --build medusa-backend`
+2. Run database migrations: `npx medusa db:migrate`
+3. Check users and store links carefully via local custom module (`store-management`).

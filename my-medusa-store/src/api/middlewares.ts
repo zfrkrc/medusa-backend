@@ -1,48 +1,84 @@
 import { defineMiddlewares } from "@medusajs/medusa"
-import path from "path"
+import { MedusaRequest, MedusaResponse, MedusaNextFunction } from "@medusajs/framework/http"
+import { storeIsolationMiddleware } from "./middlewares/store-isolation"
+import { authContextMiddleware, publicStoreHeaderMiddleware } from "./middlewares/auth-context"
 
 // ============================================================
 // Cookie Auth Patch artık instrumentation.ts içinde.
 // (Medusa route kayıtlarından ÖNCE çalışması için oraya taşındı)
 // ============================================================
 
-// Helper: Cookie'den değer okuma (cookie-parser gerektirmez)
-function getCookieValue(req: any, name: string): string | null {
-    const cookieHeader = req.headers.cookie
-    if (!cookieHeader) return null
-    const match = cookieHeader.split(';').find((c: string) => c.trim().startsWith(name + '='))
-    if (!match) return null
-    return decodeURIComponent(match.split('=').slice(1).join('=').trim())
-}
-
 export default defineMiddlewares({
     routes: [
-        // ===== SESSION COOKIE WRITER =====
+        // ===== SESSION COOKIE WRITER — Login =====
         {
             method: ["POST"],
             matcher: "/auth/session",
+            bodyParser: { sizeLimit: "2mb" }, // ensure body is parsed
             middlewares: [
                 (req: any, res: any, next: any) => {
-                    const token = req.headers.authorization?.replace('Bearer ', '')
-                    console.log(`[session-debug] POST /auth/session | token: ${token ? 'MEVCUT' : 'YOK'}`)
+                    console.log(`[cookie-auth] 🔍 POST /auth/session Intercepted! body exist: ${!!req.body}`)
+                    if (req.body) console.log(JSON.stringify(req.body).substring(0, 100))
+
+                    let token = req.headers.authorization?.replace("Bearer ", "").trim()
+
+                    if (!token && req.body?.token) {
+                        token = req.body.token.trim()
+                        // Ensure it drops into Medusa context
+                        req.headers.authorization = `Bearer ${token}`
+                        console.log(`[cookie-auth] 🔧 Injected Authorization header from req.body`)
+                    } else if (!token && !req.body && req.on) {
+                        console.log(`[cookie-auth] 🚧 req.body is missing, body parser hasn't run yet?`)
+                    }
+
                     if (token) {
-                        const origWriteHead = res.writeHead
-                        res.writeHead = function (statusCode: number, ...args: any[]) {
-                            if (statusCode >= 200 && statusCode < 300) {
-                                console.log(`[session-debug] ✅ Set-Cookie ekleniyor (status: ${statusCode})`)
-                                res.setHeader('Set-Cookie',
-                                    `_medusa_jwt_=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${10 * 60 * 60}`
-                                )
-                            }
-                            return origWriteHead.call(res, statusCode, ...args)
-                        }
-                    } else {
-                        console.log(`[session-debug] ⚠️  Token yok — cookie SET EDİLMEYECEK!`)
+                        try {
+                            const cookieStr = `_medusa_jwt_=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${10 * 60 * 60}`
+                            res.setHeader("Set-Cookie", cookieStr)
+                            console.log("[cookie-auth] 🍪 Successfully wrote _medusa_jwt_ cookie on POST /auth/session")
+                        } catch (_) { }
                     }
                     next()
                 }
             ]
         },
+
+        // ===== SESSION COOKIE CLEARER — Logout =====
+        {
+            method: ["DELETE"],
+            matcher: "/auth/session",
+            middlewares: [
+                (req: any, res: any) => {
+                    console.log("[cookie-auth] 🗑️ Wiping out _medusa_jwt_ on DELETE /auth/session")
+                    res.setHeader("Set-Cookie", [
+                        `_medusa_jwt_=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`,
+                        `_medusa_jwt_=; Path=/; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`,
+                    ])
+                    res.status(200).json({ success: true, message: "Custom logout successful" })
+                }
+            ]
+        },
+
+        // Runs after Medusa's built-in authenticate() so auth_context is available.
+        {
+            method: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+            matcher: "/admin/*",
+            middlewares: [
+                authContextMiddleware,
+                storeIsolationMiddleware,
+            ],
+        },
+
+        // ===== PUBLIC STORE HEADER — Store API Routes =====
+        // Storefront sends "x-store-handle: clay-store" to scope its data.
+        {
+            method: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+            matcher: "/store/*",
+            middlewares: [
+                publicStoreHeaderMiddleware,
+            ],
+        },
+
         // ===== ADMIN REQUEST DEBUG =====
         {
             method: ["GET"],
@@ -65,7 +101,7 @@ export default defineMiddlewares({
             method: ["GET"],
             matcher: "/uploads-debug",
             middlewares: [
-                (req, res) => {
+                (req: MedusaRequest, res: MedusaResponse) => {
                     const fs = require("fs")
                     const path = require("path")
 
@@ -105,7 +141,7 @@ export default defineMiddlewares({
             method: ["GET"],
             matcher: "/uploads/*",
             middlewares: [
-                (req, res, next) => {
+                (req: MedusaRequest, res: MedusaResponse, next: MedusaNextFunction) => {
                     const fs = require("fs")
                     const path = require("path")
 

@@ -1,61 +1,16 @@
 import { loadEnv, defineConfig } from '@medusajs/framework/utils'
 import path from "path"
 
-  // ============================================================
-  // 🛡️ COOKIE AUTH PATCH (GUARANTEED EXECUTION)
-  // ============================================================
-  ; (function patchAuthenticate() {
-    try {
-      const paths = [
-        "@medusajs/framework/dist/http/middlewares/authenticate-middleware",
-        "@medusajs/medusa/dist/utils/middlewares/authenticate-middleware",
-        "@medusajs/medusa/dist/api/utils/middlewares/authenticate-middleware",
-        "@medusajs/medusa/dist/http/middlewares/authenticate-middleware"
-      ]
-
-      paths.forEach(modulePath => {
-        try {
-          const fullPath = path.join(process.cwd(), "node_modules", modulePath)
-          let authModule;
-          try {
-            authModule = require(fullPath)
-          } catch (e) { return; }
-
-          if (authModule && authModule.authenticate) {
-            if (authModule.authenticate.__cookiePatched) {
-              console.log(`[cookie-auth] ⏭️  Already patched: ${modulePath}`)
-              return
-            }
-
-            const originalAuthenticate = authModule.authenticate
-            authModule.authenticate = function (...args: any[]) {
-              const originalMiddleware = originalAuthenticate(...args)
-              return async function (req: any, res: any, next: any) {
-                if (!req.headers.authorization && req.headers.cookie) {
-                  const match = req.headers.cookie.split(";").find((c: any) => c.trim().startsWith("_medusa_jwt_="))
-                  if (match) {
-                    const token = decodeURIComponent(match.split("=").slice(1).join("=").trim())
-                    if (token) {
-                      req.headers.authorization = `Bearer ${token}`
-                      console.log(`[cookie-auth] 🍪→🔑 Injected (${modulePath.split('/')[1]}): ${req.method} ${req.path}`)
-                    }
-                  }
-                }
-                return originalMiddleware(req, res, next)
-              }
-            }
-            authModule.authenticate.__cookiePatched = true
-            console.log(`[cookie-auth] ✅ Patched: ${modulePath}`)
-          }
-        } catch (e: any) {
-          console.log(`[cookie-auth] ❌ Error patching ${modulePath}: ${e.message}`)
-        }
-      })
-    } catch (err: any) {
-      console.error("[cookie-auth] ❌ Global patch error:", err.message)
-    }
-  })()
 // ============================================================
+// Cookie Auth Patch Moved to instrumentation.ts
+// ============================================================
+try {
+  const { register } = require("./instrumentation")
+  register()
+} catch (e) {
+  console.error("Failed to register instrumentation:", e)
+}
+
 
 loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 loadEnv(process.env.NODE_ENV || 'development', '../') // Docker'daki üst klasördeki .env için
@@ -69,8 +24,11 @@ module.exports = defineConfig({
     path: "/app",
     backendUrl: process.env.MEDUSA_BACKEND_URL || "http://localhost:7001",
     ...(process.env.NODE_ENV === 'development' ? {
-      vite: (config) => {
+      vite: (config: any) => {
         return {
+          define: {
+            __MAX_UPLOAD_FILE_SIZE__: 10 * 1024 * 1024, // 10MB
+          },
           server: {
             allowedHosts: [
               "localhost",
@@ -168,5 +126,10 @@ module.exports = defineConfig({
         redisUrl: REDIS_URL,
       },
     }] : []),
+    // Custom: Multi-Store Tenant Management + RBAC
+    {
+      key: "store_management",
+      resolve: "./src/modules/store-management",
+    },
   ],
 })
