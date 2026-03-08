@@ -15,7 +15,8 @@
       "Bash(curl -si \"http://localhost:8002/\")",
       "Bash(curl -si \"https://claybysevgi.com/\")",
       "Bash(curl -si \"https://claybysevgi.com/tr\")",
-      "Bash(curl -si \"https://claybysevgi.com/api/auth/sign-in/social\" -X POST -H \"Content-Type: application/json\" -d '{\"\"provider\"\":\"\"google\"\",\"\"callbackURL\"\":\"\"/account\"\"}')"
+      "Bash(curl -si \"https://claybysevgi.com/api/auth/sign-in/social\" -X POST -H \"Content-Type: application/json\" -d '{\"\"provider\"\":\"\"google\"\",\"\"callbackURL\"\":\"\"/account\"\"}')",
+      "Bash(xargs grep -l \"login\\\\|Login\\\\|image\\\\|Image\\\\|background\")"
     ]
   }
 }
