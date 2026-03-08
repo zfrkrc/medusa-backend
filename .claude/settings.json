@@ -20,7 +20,9 @@
       "Bash(docker ps --format \"table {{.Names}}\\\\t{{.Status}}\\\\t{{.Ports}}\")",
       "Bash(docker compose -f /c/Kodlar/medusa-stores/docker-compose.yml build hobby-storefront)",
       "Bash(git push origin main)",
-      "Bash(docker compose -f /c/Kodlar/medusa-stores/docker-compose.yml up -d --force-recreate hobby-storefront sedefli-storefront clay-storefront)"
+      "Bash(docker compose -f /c/Kodlar/medusa-stores/docker-compose.yml up -d --force-recreate hobby-storefront sedefli-storefront clay-storefront)",
+      "Bash(grep -v \"^$\")",
+      "Bash(docker compose -f /c/Kodlar/medusa-stores/docker-compose.yml build sedefli-storefront clay-storefront hobby-storefront)"
     ]
   }
 }
