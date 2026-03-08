@@ -18,7 +18,9 @@
       "Bash(curl -si \"https://claybysevgi.com/api/auth/sign-in/social\" -X POST -H \"Content-Type: application/json\" -d '{\"\"provider\"\":\"\"google\"\",\"\"callbackURL\"\":\"\"/account\"\"}')",
       "Bash(xargs grep -l \"login\\\\|Login\\\\|image\\\\|Image\\\\|background\")",
       "Bash(docker ps --format \"table {{.Names}}\\\\t{{.Status}}\\\\t{{.Ports}}\")",
-      "Bash(docker compose -f /c/Kodlar/medusa-stores/docker-compose.yml build hobby-storefront)"
+      "Bash(docker compose -f /c/Kodlar/medusa-stores/docker-compose.yml build hobby-storefront)",
+      "Bash(git push origin main)",
+      "Bash(docker compose -f /c/Kodlar/medusa-stores/docker-compose.yml up -d --force-recreate hobby-storefront sedefli-storefront clay-storefront)"
     ]
   }
 }
