@@ -7,7 +7,10 @@
       "Bash(curl -s \"http://localhost:8001/api/auth/sign-in/social\" -X POST -H \"Content-Type: application/json\" -d '{\"\"provider\"\":\"\"google\"\",\"\"callbackURL\"\":\"\"/account\"\"}')",
       "Bash(curl -si \"http://localhost:8001/api/auth/sign-in/social\" -X POST -H \"Content-Type: application/json\" -d '{\"\"provider\"\":\"\"google\"\",\"\"callbackURL\"\":\"\"/account\"\"}')",
       "Bash(docker exec hobby-storefront sh -c 'echo \"\"DB: $DATABASE_URL\"\"')",
-      "Bash(docker compose up -d --force-recreate hobby-storefront clay-storefront sedefli-storefront)"
+      "Bash(docker compose up -d --force-recreate hobby-storefront clay-storefront sedefli-storefront)",
+      "Bash(curl -si \"https://hobby.zaferkaraca.net/api/auth/sign-in/social\" -X POST -H \"Content-Type: application/json\" -d '{\"\"provider\"\":\"\"google\"\",\"\"callbackURL\"\":\"\"/account\"\"}')",
+      "Bash(docker exec hobby-storefront sh -c 'echo \"\"DB=$DATABASE_URL | BETTER_AUTH_URL=$BETTER_AUTH_URL\"\"')",
+      "Read(//c/Kodlar/**)"
     ]
   }
 }
