@@ -15,8 +15,14 @@ export default async function orderCompletedInvoiceHandler({
   const orderId = data.id
   if (!orderId) return
 
-  const provider     = process.env.INVOICE_PROVIDER ?? "parasut"
+  const provider     = process.env.INVOICE_PROVIDER
   const invoiceType  = (process.env.INVOICE_TYPE ?? "earchive") as "earchive" | "einvoice"
+
+  // Provider tanımlanmamışsa fatura oluşturma
+  if (!provider) {
+    console.log(`[invoice] INVOICE_PROVIDER tanımlı değil, sipariş ${orderId} için fatura atlandı.`)
+    return
+  }
 
   try {
     await createInvoiceWorkflow(container).run({

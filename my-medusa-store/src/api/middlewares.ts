@@ -149,6 +149,62 @@ export default defineMiddlewares({
             ],
         },
 
+        // ===== MÜŞTERİ KAYIT — store_id etiketleme =====
+        // Storefront üzerinden kayıt olan müşterilere hangi mağazadan
+        // kayıt olduklarını metadata.store_ids[] ile etiketler.
+        // NOT: Medusa'nın validateAndTransformBody bizden önce çalışır,
+        // bu yüzden hem req.body hem de req.validatedBody patch edilir.
+        {
+            method: ["POST"],
+            matcher: "/store/customers",
+            middlewares: [
+                (req: any, res: any, next: any) => {
+                    const storeId = req.store_id
+                    if (!storeId) return next()
+
+                    const patchMeta = (obj: any) => {
+                        if (!obj || typeof obj !== "object") return
+                        obj.metadata = obj.metadata || {}
+                        obj.metadata.store_id = obj.metadata.store_id || storeId
+                        const existing: string[] = obj.metadata.store_ids || []
+                        if (!existing.includes(storeId)) {
+                            obj.metadata.store_ids = [...existing, storeId]
+                        }
+                    }
+                    patchMeta(req.body)
+                    patchMeta(req.validatedBody)
+                    next()
+                }
+            ]
+        },
+
+        // ===== MÜŞTERİ GÜNCELLEME — yeni mağaza store_ids'e ekle =====
+        {
+            method: ["POST"],
+            matcher: "/store/customers/me",
+            middlewares: [
+                async (req: any, res: any, next: any) => {
+                    const storeId = req.store_id
+                    if (!storeId) return next()
+                    try {
+                        const authContext = req.auth_context
+                        if (authContext?.actor_id) {
+                            const customerSvc = req.scope.resolve("customer")
+                            const customer = await customerSvc.retrieveCustomer(authContext.actor_id)
+                            const existingMeta = customer?.metadata || {}
+                            const existingIds: string[] = existingMeta.store_ids || []
+                            if (!existingIds.includes(storeId)) {
+                                const patch = { metadata: { ...existingMeta, store_ids: [...existingIds, storeId] } }
+                                if (req.body)          Object.assign(req.body, patch)
+                                if (req.validatedBody) Object.assign(req.validatedBody, patch)
+                            }
+                        }
+                    } catch (_) { }
+                    next()
+                }
+            ]
+        },
+
         // ===== ADMIN REQUEST DEBUG =====
         {
             method: ["GET"],
@@ -220,7 +276,7 @@ export default defineMiddlewares({
                     // Decode islemi
                     const decodedFilename = decodeURIComponent(filename)
 
-                    const uploadDir = "/app/my-medusa-store/uploads"
+                    const uploadDir = path.join(process.cwd(), "uploads")
 
                     // 2. Dosya Arama (Fuzzy Match / Esnek Arama)
                     let foundPath = null

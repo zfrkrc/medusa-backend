@@ -116,13 +116,21 @@ export async function storeIsolationMiddleware(
                 query.sales_channel_id = [scId];
             }
 
-            // Metadata sadece filtreleme için kullanan endpointlere eklenir (locations, customers).
+            // Metadata içeren endpointlere *metadata alanını ekle (filtreleme için)
             const needsMetadata =
                 path.includes("/stock-locations") ||
-                path.includes("/customers");
-            if (needsMetadata && query.fields && typeof query.fields === "string") {
-                if (!query.fields.includes("metadata")) {
-                    query.fields += ",*metadata";
+                path.includes("/customers") ||
+                path.includes("/inventory-items") ||
+                path.includes("/promotions") ||
+                path.includes("/price-lists");
+            if (needsMetadata) {
+                if (query.fields && typeof query.fields === "string") {
+                    if (!query.fields.includes("metadata")) {
+                        query.fields += ",*metadata";
+                    }
+                } else if (!query.fields) {
+                    // fields yoksa metadata iste
+                    query.fields = "*metadata";
                 }
             }
         }
@@ -168,11 +176,15 @@ export async function storeIsolationMiddleware(
                 body.count = body.stock_locations.length;
             }
 
-            // ── Customers → İZOLE (metadata) ──
+            // ── Customers → İZOLE (metadata.store_id veya metadata.store_ids[]) ──
             if (body.customers && Array.isArray(body.customers)) {
-                body.customers = body.customers.filter(
-                    (c: any) => c.metadata?.store_id === storeId
-                );
+                body.customers = body.customers.filter((c: any) => {
+                    // Eski format: tek store_id
+                    if (c.metadata?.store_id === storeId) return true
+                    // Yeni format: store_ids dizisi (aynı müşteri birden fazla mağazada)
+                    if (Array.isArray(c.metadata?.store_ids) && c.metadata.store_ids.includes(storeId)) return true
+                    return false
+                })
                 body.count = body.customers.length;
             }
 
@@ -191,6 +203,30 @@ export async function storeIsolationMiddleware(
                     return p.sales_channels.some((sc: any) => (sc.id || sc) === scId);
                 });
                 body.count = body.products.length;
+            }
+
+            // ── Inventory Items → İZOLE (metadata.store_id) ──
+            if (body.inventory_items && Array.isArray(body.inventory_items)) {
+                body.inventory_items = body.inventory_items.filter(
+                    (item: any) => item.metadata?.store_id === storeId
+                );
+                body.count = body.inventory_items.length;
+            }
+
+            // ── Promotions → İZOLE (metadata.store_id) ──
+            if (body.promotions && Array.isArray(body.promotions)) {
+                body.promotions = body.promotions.filter(
+                    (p: any) => p.metadata?.store_id === storeId
+                );
+                body.count = body.promotions.length;
+            }
+
+            // ── Price Lists → İZOLE (metadata.store_id) ──
+            if (body.price_lists && Array.isArray(body.price_lists)) {
+                body.price_lists = body.price_lists.filter(
+                    (pl: any) => pl.metadata?.store_id === storeId
+                );
+                body.count = body.price_lists.length;
             }
         };
 
